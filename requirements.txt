@@ -1,0 +1,14 @@
+# Dependencias del MVP «Entornos Cerrados Hostiles»
+#
+# El núcleo (esquema, repositorio, motor de reglas, generador sintético y
+# reportería) corre sólo con la biblioteca estándar de Python 3.11+.
+# Este archivo existe para fijar las dependencias OPCIONALES:
+#
+#   SQLAlchemy  -> necesario únicamente para `eclss/models.py` (modelos ORM) y
+#                  para la prueba de paridad del esquema con SQLAlchemy real.
+#                  Instalar con:  pip install -r requirements.txt
+#
+# No se requiere pandas: la analítica de ventanas está implementada en Python
+# puro a propósito, para que el módulo funcione en el portátil de a bordo sin
+# ruedas binarias que compilar.
+sqlalchemy>=2.0,<3.0

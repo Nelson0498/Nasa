@@ -1,0 +1,179 @@
+==============================================================================
+  MÓDULO ENTORNOS CERRADOS HOSTILES — TRIAJE AUTÓNOMO
+  Misión Marte de 3 años — hábitat de superficie
+  VENTANA 2025-03-03T23:58:00+00:00 → 2025-03-04T23:58:00+00:00
+  LATENCIA TIERRA: 24 MIN · MODO AUTÓNOMO ACTIVO · MOTOR v1.0.0
+==============================================================================
+  ALERTAS VISIBLES: 13 (13 críticas, 0 advertencias)   |  SUPRIMIDAS POR CORRELACIÓN: 27
+
+  >>> CRITICAL <<<  ROUTE_R1_CIRCADIAN_VIRAL   (score 100/100)
+  QUÉ PASA        : RUTA 1: CIRCADIANO → VIRAL
+  POR QUÉ IMPORTA : Pérdida de vigilancia inmune sobre herpesvirus latentes: prever lesiones en 48–72 h.
+  CRITERIOS       :
+      [cumple] Disparador ambiental (3 noches > 62 dBA o luz azul > 50 lux) — noches=3 racha=3 Leq_nocturno=59.8 dBA azul_max=68.9066
+      [cumple] Respuesta HPA (ratio cortisol AM/NOCHE < 2.0) — afectados=['CDR-01', 'MS-04', 'PLT-02']
+      [cumple] Reactivación viral (>= 1e4 copias/mL) — detecciones=[('CDR-01', 'VZV_DNA'), ('PLT-02', 'EBV_DNA')]
+  EVIDENCIA       :
+      · NOISE_NIGHT_LEQ: 59.8 dBA (umbral 62.0 dBA)
+      · BLUE_LIGHT_NIGHT: 68.9 lux@480nm (umbral 50.0 lux@480nm)
+      · VIRAL:CDR-01:VZV_DNA: 12,000 copias/mL (umbral 10,000 copias/mL)
+      · VIRAL:PLT-02:EBV_DNA: 35,000 copias/mL (umbral 10,000 copias/mL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  ROUTE_R2_HUMIDITY_ALLERGY   (score 100/100)
+  QUÉ PASA        : RUTA 2: HUMEDAD → ALERGIA
+  POR QUÉ IMPORTA : Sensibilización a antígenos fúngicos: rinitis, dermatitis y broncoespasmo.
+  CRITERIOS       :
+      [cumple] HR > 70 % durante > 12 h — acumulado=24.0 h
+      [cumple] Hongos en aire > 100 UFC/m3 — max=144.2 UFC/m3 mVOCs=301.9 ppb
+      [cumple] Respuesta Th2 o clínica (eosinofilia / IgE / sibilancias / SpO2) — eos/IgE=['MS-05'] respiratorio=['MS-05'] SpO2_bajo=['MS-05']
+  EVIDENCIA       :
+      · HUMIDITY_HORAS_SOBRE_70: 24.0 h (umbral 12.0 h)
+      · AIR_FUNGI: 144.2 UFC/m3 (umbral 100.0 UFC/m3)
+      · EOSINOFILOS:MS-05: 640.0 cel/uL (umbral 500.0 cel/uL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  ROUTE_R3_BIOFILM_INFECTION   (score 100/100)
+  QUÉ PASA        : RUTA 3: BIOPELÍCULA → INFECCIÓN
+  POR QUÉ IMPORTA : Infecciones oportunistas (ITU, gastroenteritis, foliculitis) resistentes al botiquín.
+  CRITERIOS       :
+      [cumple] Biopelícula en WRS (TOC > 5 mg/L o > 100 UFC/mL o coliformes) — TOC=6.53 UFC/mL=158.7 coliformes=True
+      [cumple] Compromiso inmune (sIgA -40 % o IL-6 > 5 pg/mL en >= 2) — sIgA=['CDR-01', 'MS-04'] IL6=['CDR-01', 'MS-04', 'MS-05']
+  EVIDENCIA       :
+      · WATER_TOC: 6.53 mg/L (umbral 5.00 mg/L)
+      · WATER_BACTERIA: 158.7 UFC/mL (umbral 100.0 UFC/mL)
+      · SIGA:CDR-01: 88.0 ug/mL (umbral 99.0 ug/mL)
+      · SIGA:MS-04: 70.0 ug/mL (umbral 78.6 ug/mL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  SCENARIO_A_WATER_IMMUNE   (score 100/100)
+  QUÉ PASA        : CONTAMINACIÓN MICROBIANA DEL AGUA
+  POR QUÉ IMPORTA : Riesgo alto de ITU y gastroenteritis en 3 tripulante(s): retirar el circuito A de consumo.
+  CRITERIOS       :
+      [cumple] Agua fuera de rango (TOC > 5 mg/L o > 100 UFC/mL o coliformes) — TOC=6.53 UFC/mL=158.7 coliformes=True
+      [cumple] Compromiso inmune (sIgA -40 % o IL-6 > 5 pg/mL en >= 2 sujetos) — sIgA=['CDR-01', 'MS-04'] IL6=['CDR-01', 'MS-04', 'MS-05']
+  QUÉ HACER AHORA :
+      1. [AISLAMIENTO] Cerrar las válvulas solenoides del tanque A y conmutar el suministro al Circuito B esterilizado.
+         → CLOSE_SOLENOID_VALVE · requiere confirmación (QR QR-VALVE-WRS-04A)
+      2. [DESINFECCION] Pasteurizar el circuito aislado a 85 °C durante 60 min y dosificar biocida de plata iónica a 400 ppb.
+         → THERMAL_PASTEURIZATION · requiere confirmación
+      3. [CLINICO] Protocolo profiláctico de 5 días: zinc 30 mg/día, vitamina D3 4 000 UI/día y probiótico Lactobacillus rhamnosus GG.
+         → MUCOSAL_PROPHYLAXIS_5D · requiere confirmación (QR QR-ZN30-VITD4000-LGG; Cajón 2, Celda B4)
+      4. [LOGISTICA] Bloquear el consumo del Circuito A hasta dos pruebas sucesivas de ATP/qPCR negativas y empaquetar la telemetría para Tierra.
+         → QUARANTINE_CIRCUIT_AND_DOWNLINK · requiere confirmación
+  EVIDENCIA       :
+      · WATER_TOC: 6.53 mg/L (umbral 5.00 mg/L)
+      · WATER_BACTERIA: 158.7 UFC/mL (umbral 100.0 UFC/mL)
+      · SIGA:CDR-01: 88.0 ug/mL (umbral 99.0 ug/mL)
+      · SIGA:MS-04: 70.0 ug/mL (umbral 78.6 ug/mL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  SCENARIO_B_CIRCADIAN_VIRAL   (score 100/100)
+  QUÉ PASA        : REACTIVACIÓN VIRAL POR DISRUPCIÓN CIRCADIANA
+  POR QUÉ IMPORTA : Riesgo de herpes zóster oftálmico o diseminado: iniciar antiviral y resincronizar el eje HPA.
+  CRITERIOS       :
+      [cumple] Ruido nocturno > 62 dBA en >= 3 noches o luz azul > 50 lux — racha_noches=3 azul_max=68.9066
+      [cumple] Ratio cortisol AM/NOCHE < 2.0 — afectados=['CDR-01', 'MS-04', 'PLT-02']
+      [cumple] VZV o EBV > 1e4 copias/mL — detecciones=[('CDR-01', 'VZV_DNA'), ('PLT-02', 'EBV_DNA')]
+  QUÉ HACER AHORA :
+      1. [AISLAMIENTO] Anular el controlador de iluminación: bloquear el espectro < 550 nm durante las 4 h previas al sueño y forzar modo ámbar.
+         → LIGHTING_SPECTRUM_OVERRIDE · requiere confirmación
+      2. [AISLAMIENTO] Activar cancelación activa de ruido en los módulos de descanso y ordenar protectores auditivos de 25 dB de atenuación.
+         → NOISE_CANCELLATION_AND_HPD · requiere confirmación (QR QR-HPD-25DB; Cajón 1, Celda A3)
+      3. [CLINICO] Extraer valaciclovir 1 000 mg cada 8 h durante 7 días del dispensador médico seguro (indicado si VZV > 1e4 copias/mL).
+         → ANTIVIRAL_VALACYCLOVIR · requiere confirmación (QR QR-VALAC-1000; Cajón 3, Celda A2)
+      4. [CLINICO] Administrar melatonina de liberación controlada 3 mg una hora antes del ciclo oscuro para resincronizar el eje HPA.
+         → MELATONIN_CR · requiere confirmación (QR QR-MELAT-3CR; Cajón 3, Celda C1)
+      5. [LOGISTICA] Reclasificar las tareas no críticas del tripulante afectado durante 48 h para reducir la carga alostática.
+         → RECLASSIFY_TASKS_48H · automática
+  EVIDENCIA       :
+      · NOISE_NIGHTS_OVER_62: 3.00 noches (umbral 3.00 noches)
+      · BLUE_LIGHT_NIGHT: 68.9 lux@480nm (umbral 50.0 lux@480nm)
+      · CORTISOL_RATIO:CDR-01: 1.70 ratio (umbral 2.00 ratio)
+      · CORTISOL_RATIO:MS-04: 1.80 ratio (umbral 2.00 ratio)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  SCENARIO_C_FUNGAL_ALLERGY   (score 100/100)
+  QUÉ PASA        : PROLIFERACIÓN FÚNGICA EN AIRE DE CABINA
+  POR QUÉ IMPORTA : Riesgo alto de broncoespasmo en 1 tripulante(s); contener la humedad y descontaminar el punto de rocío.
+  CRITERIOS       :
+      [cumple] HR > 70 % durante > 12 h — acumulado=24.0 h
+      [cumple] Hongos en aire > 100 UFC/m3 — max=144.2
+      [cumple] Eosinófilos > 500/µL o SpO2 < 94 % con sibilancias — eos=['MS-05'] sibilancias=['MS-05'] SpO2=['MS-05']
+  QUÉ HACER AHORA :
+      1. [AISLAMIENTO] Llevar los deshumidificadores de condensación al 100 % y activar recirculación máxima a través de HEPA/ULPA.
+         → MAX_DEHUMIDIFICATION_RECIRC · automática
+      2. [DESINFECCION] Generar el mapa térmico de humedad para localizar el punto de rocío y limpiar la superficie con toallitas de H2O2 acelerado al 0.5 % (respirador N95 y guantes de nitrilo).
+         → LOCALIZED_DECON_H2O2 · requiere confirmación (QR QR-H2O2-05; Cajón 5, Celda D1)
+      3. [CLINICO] Administrar cetirizina 10 mg vía oral y vigilar la respuesta en 60 min.
+         → ANTIHISTAMINE_2ND_GEN · requiere confirmación (QR QR-CETI-10; Cajón 4, Celda A1)
+      4. [CLINICO] Si hay compromiso bronquial: salbutamol inhalado + budesonida inhalada. Evitar corticoides sistémicos orales (agravarían la inmunosupresión espacial).
+         → INHALED_BRONCHODILATOR_STEROID · requiere confirmación (QR QR-SALB-BUD; Cajón 4, Celda B2)
+  EVIDENCIA       :
+      · HUMIDITY_HORAS_SOBRE_70: 24.0 h (umbral 12.0 h)
+      · AIR_FUNGI: 144.2 UFC/m3 (umbral 100.0 UFC/m3)
+      · EOSINOFILOS:MS-05: 640.0 cel/uL (umbral 500.0 cel/uL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  SYSTEM_AIR_DEGRADED   (score 95/100)
+  QUÉ PASA        : DEGRADACIÓN DEL SISTEMA DE AIRE
+  POR QUÉ IMPORTA : 25 alarmas derivadas agrupadas. Fallo primario de revitalización de aire: HEPA/carbón saturados y lecho de CO2 agotado.
+  EVIDENCIA       :
+      · HUMIDITY:HAB-01: 80.1 %HR (umbral 75.0 %HR)
+      · HUMIDITY:LAB-01: 77.5 %HR (umbral 75.0 %HR)
+      · HUMIDITY:NODE-01: 81.1 %HR (umbral 75.0 %HR)
+      · NOISE_LEQ:LAB-01: 72.6 dBA (umbral 72.0 dBA)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  SYSTEM_WATER_DEGRADED   (score 95/100)
+  QUÉ PASA        : DEGRADACIÓN DEL SISTEMA DE AGUA
+  POR QUÉ IMPORTA : 2 alarmas derivadas agrupadas. Biopelícula en el WRS: retirar el circuito afectado del consumo.
+  EVIDENCIA       :
+      · WATER_BACTERIA:A: 158.7 UFC/mL (umbral 100.0 UFC/mL)
+      · WATER_TOC:A: 6.53 mg/L (umbral 5.00 mg/L)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  BIO_VIRAL_REACTIVATION   (score 75/100)
+  QUÉ PASA        : REACTIVACIÓN VIRAL (4)
+  POR QUÉ IMPORTA : Riesgo de herpes zóster, mononucleosis atípica o encefalitis.
+  EVIDENCIA       :
+      · VZV_DNA:CDR-01: 12,000 copias/mL (umbral 10,000 copias/mL)
+      · EBV_DNA:PLT-02: 35,000 copias/mL (umbral 10,000 copias/mL)
+      · EBV_DNA:CDR-01: 4,000 copias/mL (umbral 10,000 copias/mL)
+      · VZV_DNA:MS-04: 8,000 copias/mL (umbral 10,000 copias/mL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  BIO_DIFFERENTIAL_SHIFT   (score 70/100)
+  QUÉ PASA        : ALTERACIÓN DEL LEUCOGRAMA
+  POR QUÉ IMPORTA : Neutrofilia con linfopenia (infección) o eosinofilia (hipersensibilidad).
+  EVIDENCIA       :
+      · EOSINOFILOS:MS-05: 640.0 cel/uL (umbral 500.0 cel/uL)
+      · NEUTROFILIA+LYMPHOPENIA:MS-04: 78.0 % neutrófilos (umbral 75.0 % neutrófilos)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  BIO_SIGA_DROP   (score 70/100)
+  QUÉ PASA        : sIgA EN CAÍDA (3 TRIPULANTES)
+  POR QUÉ IMPORTA : Vulnerabilidad de la barrera mucosa: puerta de entrada a infecciones oportunistas.
+  EVIDENCIA       :
+      · SIGA:CDR-01: 88.0 ug/mL (umbral 99.0 ug/mL)
+      · SIGA:MS-04: 70.0 ug/mL (umbral 78.6 ug/mL)
+      · SIGA:MS-05: 95.0 ug/mL (umbral 72.6 ug/mL)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  BIO_CORTISOL_FLATTENING   (score 65/100)
+  QUÉ PASA        : CURVA DE CORTISOL APLANADA (4)
+  POR QUÉ IMPORTA : Hiperactividad del eje HPA: supresión Th1 y menor vigilancia inmune.
+  EVIDENCIA       :
+      · CORTISOL_RATIO:CDR-01: 1.70 ratio AM/NOCHE (umbral 2.00 ratio AM/NOCHE)
+      · CORTISOL_RATIO:MS-04: 1.80 ratio AM/NOCHE (umbral 2.00 ratio AM/NOCHE)
+      · CORTISOL_RATIO:PLT-02: 1.90 ratio AM/NOCHE (umbral 2.00 ratio AM/NOCHE)
+      · CORTISOL_RATIO:MS-05: 2.30 ratio AM/NOCHE (umbral 2.00 ratio AM/NOCHE)
+------------------------------------------------------------------------------
+  >>> CRITICAL <<<  BIO_CYTOKINE_SHIFT   (score 60/100)
+  QUÉ PASA        : PERFIL INFLAMATORIO Th2 (3 CON IL-6)
+  POR QUÉ IMPORTA : Inflamación sistémica de bajo grado e inmunosenescencia acelerada.
+  EVIDENCIA       :
+      · IL6:MS-04: 7.40 pg/mL (umbral 5.00 pg/mL)
+      · IFNG_IL10:CDR-01: 0.48 ratio (umbral 1.00 ratio)
+      · IFNG_IL10:MS-04: 0.38 ratio (umbral 1.00 ratio)
+      · IFNG_IL10:PLT-02: 0.66 ratio (umbral 1.00 ratio)
+------------------------------------------------------------------------------
+  ALARMAS DERIVADAS SILENCIADAS (consultables, no gritan):
+      25 bajo SYSTEM_AIR_DEGRADED
+       2 bajo SYSTEM_WATER_DEGRADED
+
+  AUDITORÍA
+      reglas evaluadas      : 52
+      latencia del motor    : 286.7 ms
+      alertas persistidas   : 40
+      paquetes de downlink  : 6
+==============================================================================

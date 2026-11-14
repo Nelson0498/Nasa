@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NASA HRP | ECLSS Entornos Cerrados Hostiles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+  <div id="app" class="min-h-screen flex flex-col">
+
+    <!-- BANNER FIJO DE ESTADO AUTÓNOMO Y LATENCIA -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-3">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <span class="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h1 class="text-sm font-bold tracking-wider uppercase text-slate-200">
+              ECLSS-HRP // Módulo Entornos Cerrados Hostiles
+            </h1>
+            <p class="text-xs text-slate-400 font-mono">MISIÓN ARES-IV · CICLO CERRADO · SIN EVACUACIÓN</p>
+          </div>
+        </div>
+
+        <!-- INDICADOR CRÍTICO SOLICITADO -->
+        <div class="px-4 py-1.5 rounded bg-amber-500/15 border border-amber-500/50 text-amber-300 font-mono text-xs sm:text-sm font-bold tracking-wide">
+          🛰️ LATENCIA TIERRA: 24 MIN | MODO AUTÓNOMO ACTIVO
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            @click="restaurarNominal"
+            :disabled="cargando"
+            class="px-3 py-2 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold uppercase tracking-wider transition disabled:opacity-50">
+            Restaurar Nominal
+          </button>
+          <button
+            @click="simularCrisis"
+            :disabled="cargando"
+            class="px-4 py-2 rounded bg-red-600 hover:bg-red-500 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-red-950 transition disabled:opacity-50">
+            ⚠ Simular Crisis
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-6 py-6 space-y-6 flex-1">
+
+      <!-- AVISO DE FALLO DE CONEXIÓN CON EL BACKEND (no falla en silencio) -->
+      <div v-if="error" class="bg-red-950/40 border border-red-600 rounded-lg p-4 flex items-start gap-3" role="alert">
+        <span class="text-red-400 text-xl leading-none">⚠</span>
+        <div>
+          <p class="text-sm font-bold text-red-300">Fallo de conexión con el backend</p>
+          <p class="text-xs text-red-200/90 font-mono mt-1 leading-relaxed">{{ error }}</p>
+        </div>
+      </div>
+
+      <!-- PANEL DE ALERTAS AUTÓNOMAS Y CHECKLIST (PRIORIDAD VISUAL) -->
+      <section v-if="alertasActivas.length > 0" class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-bold uppercase tracking-widest text-red-400">
+            🚨 Protocolos Autónomos Activos ({{ alertasActivas.length }})
+          </h2>
+          <span class="text-xs font-mono text-slate-400">EJECUCIÓN LOCAL SIN CONFIRMACIÓN DE HOUSTON</span>
+        </div>
+
+        <div
+          v-for="alerta in alertasActivas"
+          :key="alerta.id"
+          :class="alerta.nivel === 'CRITICA' ? 'border-red-500 bg-red-950/25' : 'border-amber-500 bg-amber-950/20'"
+          class="border-2 rounded-lg p-5 shadow-xl">
+          <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+            <div>
+              <span
+                :class="alerta.nivel === 'CRITICA' ? 'bg-red-600 text-white' : 'bg-amber-500 text-slate-950'"
+                class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold uppercase mr-2">
+                {{ alerta.nivel }}
+              </span>
+              <span class="font-mono text-xs text-slate-400">{{ alerta.codigo_regla }}</span>
+              <h3 class="text-lg font-bold text-white mt-1">{{ alerta.titulo }}</h3>
+            </div>
+            <span class="text-xs font-mono text-slate-400">
+              Progreso: {{ pasosCompletados(alerta) }}/{{ alerta.protocolo_pasos.length }}
+            </span>
+          </div>
+
+          <p class="text-sm text-slate-300 mb-4 bg-slate-900/70 p-3 rounded border border-slate-800">
+            <strong class="text-slate-100">Correlación Clínica:</strong> {{ alerta.diagnostico }}
+          </p>
+
+          <!-- CHECKLIST INTERACTIVO -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono uppercase tracking-wider text-slate-400">
+              Lista de Verificación Secuencial (Marcar al ejecutar):
+            </p>
+            <label
+              v-for="paso in alerta.protocolo_pasos"
+              :key="paso.orden"
+              @click.prevent="togglePaso(alerta.id, paso.orden)"
+              :class="paso.completado ? 'bg-emerald-950/30 border-emerald-700/50 text-slate-400 line-through' : 'bg-slate-900 border-slate-700 text-slate-100 hover:border-slate-500'"
+              class="flex items-center gap-3 p-3 rounded border cursor-pointer transition select-none">
+              <input
+                type="checkbox"
+                :checked="paso.completado"
+                class="h-5 w-5 accent-emerald-500 rounded cursor-pointer" />
+              <span class="font-mono text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                PASO {{ paso.orden }}
+              </span>
+              <span class="text-sm font-medium">{{ paso.accion }}</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ESTADO NOMINAL SI NO HAY ALERTAS -->
+      <section v-else class="bg-emerald-950/20 border border-emerald-700/40 rounded-lg p-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-emerald-400 text-xl">✓</span>
+          <div>
+            <p class="text-sm font-bold text-emerald-300">TODOS LOS SISTEMAS EN PARÁMETROS NOMINALES</p>
+            <p class="text-xs text-slate-400">Sin correlaciones de riesgo inmunológico detectadas en la tripulación.</p>
+          </div>
+        </div>
+        <span class="text-xs font-mono text-emerald-400">VIGILANCIA ACTIVA</span>
+      </section>
+
+      <!-- SECCIÓN 1: TELEMETRÍA AMBIENTAL ECLSS -->
+      <section v-if="ambiental">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400">
+            01 // Telemetría Ambiental en Tiempo Real ({{ ambiental.modulo }})
+          </h2>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-cyan-300">
+            FASE CIRCADIANA: {{ ambiental.fase_circadiana }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+            <p class="text-xs text-slate-400">Presión Cabina</p>
+            <p class="text-xl font-mono font-bold mt-1 text-slate-100">{{ ambiental.presion_kpa }} <span class="text-xs font-normal text-slate-400">kPa</span></p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Nom: 70-101 kPa</p>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+            <p class="text-xs text-slate-400">Temperatura</p>
+            <p :class="ambiental.temperatura_c > 25 ? 'text-amber-400' : 'text-slate-100'" class="text-xl font-mono font-bold mt-1">
+              {{ ambiental.temperatura_c }} <span class="text-xs font-normal text-slate-400">°C</span>
+            </p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Nom: 18.3-23.9 °C</p>
+          </div>
+
+          <div :class="ambiental.co2_ppm > 4000 ? 'border-red-500 bg-red-950/20' : 'border-slate-800 bg-slate-900'" class="border rounded-lg p-3">
+            <p class="text-xs text-slate-400">Nivel CO₂</p>
+            <p :class="ambiental.co2_ppm > 4000 ? 'text-red-400' : 'text-emerald-400'" class="text-xl font-mono font-bold mt-1">
+              {{ ambiental.co2_ppm }} <span class="text-xs font-normal text-slate-400">ppm</span>
+            </p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Crít: >4000 ppm</p>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-3">
+            <p class="text-xs text-slate-400">Oxígeno (O₂)</p>
+            <p class="text-xl font-mono font-bold mt-1 text-slate-100">{{ ambiental.o2_porcentaje }} <span class="text-xs font-normal text-slate-400">%</span></p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Nom: 19.5-23.5%</p>
+          </div>
+
+          <div :class="ambiental.voc_ppb > 300 ? 'border-amber-500' : 'border-slate-800'" class="bg-slate-900 border rounded-lg p-3">
+            <p class="text-xs text-slate-400">COVs (VOC)</p>
+            <p :class="ambiental.voc_ppb > 300 ? 'text-amber-400' : 'text-slate-100'" class="text-xl font-mono font-bold mt-1">
+              {{ ambiental.voc_ppb }} <span class="text-xs font-normal text-slate-400">ppb</span>
+            </p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Nom: <250 ppb</p>
+          </div>
+
+          <div :class="ambiental.ruido_db > 68 ? 'border-red-500 bg-red-950/20' : 'border-slate-800 bg-slate-900'" class="border rounded-lg p-3">
+            <p class="text-xs text-slate-400">Ruido Acústico</p>
+            <p :class="ambiental.ruido_db > 68 ? 'text-red-400' : 'text-slate-100'" class="text-xl font-mono font-bold mt-1">
+              {{ ambiental.ruido_db }} <span class="text-xs font-normal text-slate-400">dB</span>
+            </p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Crít: >68 dB</p>
+          </div>
+
+          <div :class="(ambiental.fase_circadiana === 'NOCHE' && ambiental.luz_lux > 50) ? 'border-red-500 bg-red-950/20' : 'border-slate-800 bg-slate-900'" class="border rounded-lg p-3">
+            <p class="text-xs text-slate-400">Iluminación LED</p>
+            <p :class="(ambiental.fase_circadiana === 'NOCHE' && ambiental.luz_lux > 50) ? 'text-red-400' : 'text-slate-100'" class="text-xl font-mono font-bold mt-1">
+              {{ ambiental.luz_lux }} <span class="text-xs font-normal text-slate-400">lux</span>
+            </p>
+            <p class="text-[11px] font-mono text-slate-500 mt-1">Noche: <10 lux</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECCIÓN 2 Y 3: MICROBIOLOGÍA Y BIOMARCADORES INMUNOLÓGICOS -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- MICROBIOLOGÍA -->
+        <section v-if="microbiologia" class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
+            02 // Muestreo Microbiológico
+          </h2>
+          <p class="text-sm font-semibold text-cyan-300 mb-4">{{ microbiologia.ubicacion }}</p>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-3 rounded bg-slate-950 border border-slate-800">
+              <span class="text-xs text-slate-400">Bacterias Totales</span>
+              <span :class="microbiologia.bacterias_ufc > 100 ? 'text-red-400' : 'text-emerald-400'" class="font-mono font-bold">
+                {{ microbiologia.bacterias_ufc }} UFC/mL
+              </span>
+            </div>
+
+            <div class="flex justify-between items-center p-3 rounded bg-slate-950 border border-slate-800">
+              <span class="text-xs text-slate-400">Esporas Fúngicas</span>
+              <span :class="microbiologia.hongos_ufc > 100 ? 'text-red-400' : 'text-emerald-400'" class="font-mono font-bold">
+                {{ microbiologia.hongos_ufc }} UFC/m³
+              </span>
+            </div>
+
+            <div class="p-3 rounded bg-slate-950 border border-slate-800">
+              <span class="text-xs text-slate-400 block">Secuenciación / Patógeno:</span>
+              <span :class="microbiologia.patogeno_detectado !== 'Ninguno' ? 'text-red-400 font-bold' : 'text-slate-300'" class="text-sm font-mono">
+                {{ microbiologia.patogeno_detectado }}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- BIOMARCADORES INMUNOLÓGICOS -->
+        <section class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+            03 // Vigilancia Inmunológica de la Tripulación (Saliva / Sangre Capilar)
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="t in tripulacion"
+              :key="t.id"
+              class="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-2.5">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span class="font-bold text-slate-100">{{ t.tripulante }}</span>
+                <span
+                  :class="(t.cortisol_nmol > 22 || t.siga_ug_ml < 60) ? 'bg-red-500/20 text-red-400 border-red-500/40' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'"
+                  class="text-[11px] font-mono px-2 py-0.5 rounded border">
+                  {{ (t.cortisol_nmol > 22 || t.siga_ug_ml < 60) ? 'RIESGO INMUNE' : 'ESTABLE' }}
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div class="p-2 rounded bg-slate-900">
+                  <span class="text-slate-500 block">Cortisol Salival</span>
+                  <span :class="t.cortisol_nmol > 22 ? 'text-red-400 font-bold' : 'text-slate-200'">
+                    {{ t.cortisol_nmol }} nmol/L
+                  </span>
+                </div>
+                <div class="p-2 rounded bg-slate-900">
+                  <span class="text-slate-500 block">Inmunoglobulina sIgA</span>
+                  <span :class="t.siga_ug_ml < 60 ? 'text-red-400 font-bold' : 'text-slate-200'">
+                    {{ t.siga_ug_ml }} µg/mL
+                  </span>
+                </div>
+                <div class="p-2 rounded bg-slate-900">
+                  <span class="text-slate-500 block">Citoquina IL-6</span>
+                  <span :class="t.il6_pg_ml > 5 ? 'text-amber-400 font-bold' : 'text-slate-200'">
+                    {{ t.il6_pg_ml }} pg/mL
+                  </span>
+                </div>
+                <div class="p-2 rounded bg-slate-900">
+                  <span class="text-slate-500 block">Carga Viral EBV</span>
+                  <span :class="t.carga_viral_ebv > 10000 ? 'text-red-400 font-bold' : 'text-slate-200'">
+                    {{ t.carga_viral_ebv.toLocaleString() }} c/mL
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          // Si el frontend se sirve desde Flask (puerto 5000) se usan rutas
+          // relativas; en cualquier otro caso (Live Server, archivo local) se
+          // apunta explícitamente a la API de Flask.
+          apiBase: window.location.port !== "5000" ? "http://127.0.0.1:5000" : "",
+          ambiental: null,
+          microbiologia: null,
+          tripulacion: [],
+          alertas: [],
+          cargando: false,
+          error: "",
+        };
+      },
+      computed: {
+        alertasActivas() {
+          return this.alertas.filter((a) => a.estado === "ACTIVA");
+        },
+      },
+      methods: {
+        async cargarDashboard() {
+          try {
+            const res = await fetch(`${this.apiBase}/api/dashboard`);
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+            this.ambiental = data.ambiental;
+            this.microbiologia = data.microbiologia;
+            this.tripulacion = data.tripulacion;
+            this.alertas = data.alertas;
+            this.error = "";
+          } catch (e) {
+            this.error =
+              "No se pudo conectar con el backend en " +
+              (this.apiBase || window.location.origin) +
+              ". Ejecuta `python backend/app.py` y verifica que escuche en http://127.0.0.1:5000.";
+          }
+        },
+        async simularCrisis() {
+          this.cargando = true;
+          try {
+            const res = await fetch(`${this.apiBase}/api/simular-crisis`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({}),
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            await this.cargarDashboard();
+          } catch (e) {
+            this.error = "No se pudo simular la crisis: " + e.message;
+          } finally {
+            this.cargando = false;
+          }
+        },
+        async restaurarNominal() {
+          this.cargando = true;
+          try {
+            const res = await fetch(`${this.apiBase}/api/simular-crisis`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ restaurar: true }),
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            await this.cargarDashboard();
+          } catch (e) {
+            this.error = "No se pudo restaurar el estado nominal: " + e.message;
+          } finally {
+            this.cargando = false;
+          }
+        },
+        async togglePaso(alertaId, orden) {
+          try {
+            const res = await fetch(`${this.apiBase}/api/alertas/${alertaId}/paso/${orden}`, {
+              method: "POST",
+            });
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            await this.cargarDashboard();
+          } catch (e) {
+            this.error = "No se pudo actualizar el paso del protocolo: " + e.message;
+          }
+        },
+        pasosCompletados(alerta) {
+          return alerta.protocolo_pasos.filter((p) => p.completado).length;
+        },
+      },
+      mounted() {
+        this.cargarDashboard();
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>
