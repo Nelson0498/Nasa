@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chequeo de la misión: salud mental y nutrición</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f8;--panel:#fff;--ink:#14202e;--mut:#5b6b7d;--line:#d6dde6;--ok:#0e8a6a;--warn:#b86e00;--bad:#c62f2f;--okbg:#e3f5ee;--warnbg:#fdf0d9;--badbg:#fbe4e4;--acc:#2b5fd9;--sel:#e6edff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1520;--panel:#15202e;--ink:#e6edf5;--mut:#91a1b4;--line:#27374a;--ok:#3ecf9f;--warn:#f0b24a;--bad:#ff6b6b;--okbg:#10382d;--warnbg:#3a2c0e;--badbg:#44181b;--acc:#7aa2ff;--sel:#1d3157}}
+:root[data-theme="dark"]{--bg:#0d1520;--panel:#15202e;--ink:#e6edf5;--mut:#91a1b4;--line:#27374a;--ok:#3ecf9f;--warn:#f0b24a;--bad:#ff6b6b;--okbg:#10382d;--warnbg:#3a2c0e;--badbg:#44181b;--acc:#7aa2ff;--sel:#1d3157}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "IBM Plex Sans",system-ui,sans-serif}
+h1,h2,h3,.big{font-family:Sora,system-ui,sans-serif}
+h1{font-size:clamp(1.5rem,3.5vw,2.1rem);margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.2rem;margin:0 0 10px}
+.wrap{max-width:1120px;margin:auto;padding:20px 20px 48px}
+.bar0{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.mut{color:var(--mut)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+fieldset{border:0;padding:0;margin:0 0 20px}
+legend{font-family:Sora,sans-serif;font-weight:600;font-size:1.1rem;padding:0;margin-bottom:4px}
+.q{padding:12px 0;border-top:1px solid var(--line)}
+.q p{margin:0 0 8px;font-weight:500}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{flex:1 1 auto;min-width:56px;min-height:44px}
+.ends{display:flex;justify-content:space-between;color:var(--mut);font-size:.8rem;margin-top:4px}
+button{font:inherit;font-weight:500;padding:8px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{border-color:var(--acc)}
+button[aria-pressed="true"]{background:var(--sel);border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600;min-height:44px}
+:root:not([data-theme="light"]) button.pri{color:#0d1520}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+input[type=text]{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0;flex:1 1 200px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.users{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin:18px 0}
+.ucard{display:flex;align-items:center;gap:12px;text-align:left;padding:16px;background:var(--panel);min-height:72px;font-weight:600}
+.ucard.cmd{border-color:var(--acc);border-width:2px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--sel);color:var(--acc);display:grid;place-items:center;font-family:Sora,sans-serif;font-weight:700;flex:none}
+.ucard small{display:block;font-weight:400;color:var(--mut)}
+.add{display:flex;gap:8px;flex-wrap:wrap}
+.res{position:sticky;top:calc(12px + env(safe-area-inset-top,0px))}
+@media (max-width:860px){.res{position:static}}
+.gauge{width:100%;max-width:300px;display:block;margin:0 auto}
+.state{text-align:center;margin-top:-8px}
+.big{font-size:1.7rem;font-weight:700;letter-spacing:-.01em}
+.pill{display:inline-block;border-radius:99px;padding:3px 12px;font-weight:600;font-size:.88rem}
+.s0{color:var(--mut)}.s-ok{color:var(--ok)}.s-warn{color:var(--warn)}.s-bad{color:var(--bad)}
+.dom{margin:14px 0}
+.dom div{display:grid;grid-template-columns:92px 1fr 34px;gap:10px;align-items:center;margin:6px 0;font-size:.9rem}
+.bar{height:10px;border-radius:6px;background:var(--line);overflow:hidden}.bar i{display:block;height:100%;transition:width .35s,background .35s}
+.alert{border-radius:12px;padding:14px;margin:14px 0;border:2px solid var(--bad);background:var(--badbg)}
+.alert h3{margin:0 0 6px;color:var(--bad)}
+.alert.pulse{animation:p 1.6s ease-in-out infinite}
+@keyframes p{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--bad) 30%,transparent)}}
+@media (prefers-reduced-motion:reduce){.alert.pulse{animation:none}.bar i,#arc{transition:none!important}}
+ul.why{margin:6px 0 0;padding-left:18px}
+.tip{border-radius:12px;padding:12px 14px;margin:12px 0;background:var(--bg)}
+.wx{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:6px 8px;border-top:1px solid var(--line);white-space:nowrap}
+.mem{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+.mem button{text-align:left;background:var(--panel);padding:12px}
+.mem b{display:block}
+.leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;margin-top:6px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.note{font-size:.85rem;color:var(--mut)}
+.tabs{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}.tabs button{min-height:44px;font-weight:600}
+.lim{border-left:4px solid var(--warn);background:var(--warnbg);border-radius:10px;padding:10px 14px;margin:0 0 16px;font-size:.92rem}
+.chips i{display:inline-block;width:20px;height:20px;border-radius:5px;margin:0 3px 3px 0}
+input[type=number],input[type=date],select{font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);min-width:0}
+input[type=file]{font:inherit;max-width:100%}
+.add{align-items:center}
+
+/* ---------- Asistente de ayuda ---------- */
+:root{--org:#c24e00;--orgbg:#fdebd9}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--org:#ff9a5c;--orgbg:#3d2410}}
+:root[data-theme="dark"]{--org:#ff9a5c;--orgbg:#3d2410}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;display:flex;align-items:center;gap:8px;min-height:48px;padding:10px 18px;border-radius:99px;background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+:root:not([data-theme="light"]) .fab{color:#0d1520}
+.fab:hover{border-color:var(--ink)}
+.ovl{position:fixed;inset:0;z-index:60;background:rgba(5,10,18,.55);display:flex;align-items:flex-end;justify-content:center}
+.ovl[hidden]{display:none}
+.sheet{background:var(--panel);color:var(--ink);width:100%;max-width:620px;max-height:92vh;max-height:92dvh;overflow-y:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom,0px));border:1px solid var(--line)}
+@media (min-width:700px){.ovl{align-items:center}.sheet{border-radius:18px;max-height:86vh}}
+.sh-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
+.sh-h h2{margin:0}
+.lvs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+@media (max-width:480px){.lvs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lvs button{padding:8px 6px;min-height:48px;font-size:.9rem;font-weight:600;border-width:2px}
+.lvs button[aria-pressed="true"]{box-shadow:none;color:var(--ink)}
+.lvbox{border-left:5px solid var(--c);background:var(--cbg);border-radius:10px;padding:10px 14px;margin:0 0 12px}
+.lvbox b{color:var(--c)}
+details.cs{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--bg)}
+details.cs summary{cursor:pointer;padding:12px 14px;font-weight:600;min-height:44px}
+details.cs ol{margin:0;padding:0 14px 12px 34px}
+details.cs li{margin:4px 0}
+.tri{background:var(--bg);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.tri label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.tri input{width:20px;height:20px;margin-top:2px;flex:none}
+.hint{font-size:.88rem;margin:0 0 10px}
+
+.chat{display:flex;flex-direction:column;gap:10px;margin:12px 0;min-height:160px;max-height:50vh;overflow-y:auto;padding:2px}
+.msg{max-width:88%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;word-wrap:break-word;line-height:1.45}
+.msg.bot{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.msg.me{align-self:flex-end;background:var(--sel);border:1px solid var(--acc)}
+.msg.err{align-self:flex-start;background:var(--warnbg);color:var(--ink)}
+.cform{display:flex;gap:8px;align-items:flex-end}
+.cform textarea{flex:1 1 auto;font:inherit;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);resize:none;min-width:0;max-height:120px}
+.cform textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.chips2[hidden]{display:none}
+.chips2 button{font-size:.85rem;padding:6px 10px;min-height:36px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="bar0" id="top" hidden><b id="who"></b><button type="button" id="out">Cambiar usuario</button></div>
+
+<section id="home">
+<h1>Chequeo de la misión</h1>
+<p class="mut">Elegí tu usuario para empezar. Cada astronauta tiene dos módulos: salud mental y nutrición.</p>
+<div class="users" id="ulist"></div>
+<form class="add" id="addf"><input type="text" id="newn" placeholder="Nombre del nuevo tripulante" maxlength="40" aria-label="Nombre del nuevo tripulante"><button class="pri" type="submit">Agregar tripulante</button></form>
+<p class="note" id="mode"></p>
+</section>
+
+<section id="crew" hidden>
+<div class="tabs" id="tabs"><button type="button" data-tab="mh" aria-pressed="true">Salud mental</button><button type="button" data-tab="nu" aria-pressed="false">Nutrición</button></div>
+<div id="mhp">
+<div class="grid2">
+<div class="card"><div id="qs"></div>
+<div class="btns"><button type="button" data-ex="ok">Ejemplo: me siento bien</button><button type="button" data-ex="warn">Ejemplo: regular</button><button type="button" data-ex="bad">Ejemplo: muy mal</button><button type="button" id="clr">Borrar respuestas</button></div></div>
+<div>
+<div class="card res" aria-live="polite">
+<svg class="gauge" viewBox="0 0 200 120" role="img" aria-label="Nivel de malestar">
+<path d="M20 105 A80 80 0 0 1 180 105" fill="none" stroke="var(--line)" stroke-width="16" stroke-linecap="round" pathLength="100"/>
+<path id="arc" d="M20 105 A80 80 0 0 1 180 105" fill="none" stroke="var(--mut)" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .5s,stroke .5s"/>
+<text id="num" x="100" y="92" text-anchor="middle" font-family="Sora,sans-serif" font-weight="700" font-size="38" fill="var(--ink)">—</text>
+<text x="100" y="112" text-anchor="middle" font-size="9.5" fill="var(--mut)">malestar de 0 a 100 (más alto = peor)</text>
+</svg>
+<div class="state"><div class="big s0" id="st">Sin respuestas</div><span class="pill" id="pill"></span></div>
+<div id="alert"></div>
+<div class="dom" id="doms"></div>
+<div id="why"></div>
+<button type="button" class="pri" id="save" style="width:100%">Guardar chequeo</button>
+<p class="note" id="savemsg" style="margin:8px 0 0"></p>
+</div>
+<div class="card"><h2>Tu historial</h2><div id="myh"></div></div>
+</div>
+</div>
+</div>
+<div id="nup" hidden></div>
+</section>
+
+<section id="cmd" hidden>
+<div class="bar0"><h1 style="margin:0">Panel del comandante</h1><button type="button" class="pri" data-nurse="1">Hablar con Cecilia</button></div>
+<div class="tabs" id="ctabs"><button type="button" data-ctab="mh" aria-pressed="true">Salud mental</button><button type="button" data-ctab="nu" aria-pressed="false">Nutrición</button><button type="button" data-ctab="un" aria-pressed="false">Vista unificada</button></div>
+<div id="cmdbody"></div><div id="nbody" hidden></div><div id="ubody" hidden></div>
+</section>
+
+<section id="med" hidden>
+<div class="bar0"><h1 style="margin:0">Personal médico</h1><button type="button" class="pri" data-nurse="1">Consultar a Cecilia</button></div>
+<p class="mut">Hitos y resultados de laboratorio y DXA, antes y después del vuelo.</p>
+<div id="medbody"></div>
+</section>
+</div>
+
+<button type="button" class="fab" id="fab" aria-haspopup="dialog" aria-controls="ovl"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Asistente de ayuda</button>
+<div class="ovl" id="ovl" hidden>
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ast">
+<div class="sh-h"><h2 id="ast">Asistente de ayuda</h2><button type="button" id="aclose" aria-label="Cerrar asistente">Cerrar</button></div>
+<p class="mut hint">Orientación rápida sobre qué hacer según qué tan grave es la situación. Es la misma para toda la tripulación.</p>
+<button type="button" class="pri" data-nurse="1" style="width:100%;margin:0 0 12px">Hablar con Cecilia, asistente de IA</button>
+<div class="tri"><b>¿No sabés cuál elegir? Marcá lo que corresponda:</b>
+<label><input type="checkbox" data-tri="3"><span>Hay peligro inmediato: alguien no respira o está inconsciente, dolor fuerte de pecho, sangrado que no para, fuego, humo o pérdida de presión.</span></label>
+<label><input type="checkbox" data-tri="2"><span>Me impide hacer mis tareas, empeora rápido o me cuesta mucho aguantar.</span></label>
+<label><input type="checkbox" data-tri="1"><span>Me molesta desde hace más de un día, pero puedo seguir.</span></label>
+</div>
+<div class="lvs" role="group" aria-label="Gravedad" id="alvs"></div>
+<div id="abody"></div>
+<p class="note" style="margin-top:14px">Esto es orientación general y no reemplaza al médico de a bordo ni a los protocolos oficiales de la misión. Ante la duda, avisá: pedir ayuda siempre es lo correcto.</p>
+</div>
+</div>
+
+<div class="ovl" id="novl" hidden>
+<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="nt">
+<div class="sh-h"><div><h2 id="nt">Cecilia</h2><div class="mut" id="nsub" style="font-size:.9rem"></div></div><button type="button" id="nclose" aria-label="Cerrar chat">Cerrar</button></div>
+<p class="note" style="margin:0" id="npriv"></p>
+<div class="chat" id="chat" aria-live="polite"></div>
+<div class="chips2" id="nchips"></div>
+<form class="cform" id="cform"><textarea id="cin" rows="2" maxlength="1000" aria-label="Mensaje para Cecilia"></textarea><button class="pri" type="submit" id="csend">Enviar</button></form>
+</div>
+</div>
+
+<script>
+/* ---------- Preguntas ---------- */
+const Q=[
+{d:'sleep',t:'¿Cuántas horas dormiste anoche?',o:['Menos de 4','4 a 5','6','7 a 9','Más de 9'],lv:[2,2,1,0,1]},
+{d:'sleep',t:'¿Cuánto tardaste en dormirte?',o:['Menos de 20 min','20 a 40 min','Más de 40 min'],lv:[0,1,2]},
+{d:'sleep',t:'¿Cuántas veces te despertaste durante la noche?',o:['0 o 1','2 o 3','4 o más'],lv:[0,1,2]},
+{d:'sleep',t:'Al despertar, ¿te sentiste descansado?',s:'good',a:'Nada',b:'Totalmente'},
+{d:'mood',t:'¿Cómo estuvo tu ánimo hoy?',s:'good',a:'Muy mal',b:'Muy bien'},
+{d:'mood',t:'¿Tuviste ganas e interés por lo que hacés?',s:'good',a:'Ninguno',b:'Mucho'},
+{d:'mood',t:'¿Te sentiste triste o vacío?',s:'bad',a:'Nada',b:'Muchísimo'},
+{d:'mood',t:'¿Sentiste que nada va a mejorar?',s:'bad',a:'Nada',b:'Muchísimo'},
+{d:'anx',t:'¿Te sentiste nervioso o tenso?',s:'bad',a:'Nada',b:'Muchísimo'},
+{d:'anx',t:'¿Tuviste preocupaciones que no lográs frenar?',s:'bad',a:'Ninguna',b:'Muchísimas'},
+{d:'anx',t:'¿Notaste corazón acelerado, falta de aire o temblores sin motivo?',s:'bad',a:'Nunca',b:'Todo el tiempo'},
+{d:'str',t:'¿Te sentiste sobrepasado por las tareas?',s:'bad',a:'Nada',b:'Totalmente'},
+{d:'str',t:'¿Estuviste irritable o con poca paciencia?',s:'bad',a:'Nada',b:'Muchísimo'},
+{d:'str',t:'¿Quisiste aislarte de tus compañeros?',s:'bad',a:'Nada',b:'Totalmente'}
+];
+Q.forEach(q=>{if(q.s){q.o=['1','2','3','4','5'];q.lv=q.s==='good'?[2,2,1,0,0]:[0,0,1,2,2]}});
+const D={sleep:['Sueño',.30],mood:['Ánimo',.30],anx:['Ansiedad',.25],str:['Estrés',.15]};
+const G={sleep:'Sueño',mood:'Ánimo',anx:'Ansiedad',str:'Estrés y convivencia'};
+const RISK=[0,45,85];            // cuanto más alto, peor
+const ST=[['ESTÁS BIEN','Todo dentro de lo esperado','s-ok','var(--ok)','var(--okbg)'],
+['A VIGILAR','Algunas respuestas se alejan de lo ideal','s-warn','var(--warn)','var(--warnbg)'],
+['ALERTA','Hay respuestas preocupantes: avisá al médico de a bordo','s-bad','var(--bad)','var(--badbg)'],
+['EMERGENCIA','Pedí ayuda ahora','s-bad','var(--bad)','var(--badbg)']];
+const TIPS=['Seguí con tus rutinas de descanso, ejercicio y contacto con tu familia.','Probá ordenar tus horarios de sueño, hacer ejercicio y hablar con un compañero o con tierra. Repetí el chequeo mañana.','Contactá hoy al médico de a bordo o al apoyo psicológico de la misión. No esperes a que pase solo.'];
+const stOf=i=>i>65?3:i>45?2:i>25?1:0;
+const rc=v=>v<=25?'var(--ok)':v<=45?'var(--warn)':'var(--bad)';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Almacenamiento (compartido si hay db; si no, este dispositivo) ---------- */
+const LS='astro_v3';let users=[],checks=[],mode='local',DB=null,view='home',cur=null,selId=null;
+const DEF=[{id:'a1',name:'Astronauta 1'},{id:'a2',name:'Astronauta 2'},{id:'a3',name:'Astronauta 3'}];
+const CMD={id:'cmd',name:'Comandante de la misión'};
+function lsLoad(){try{nu=JSON.parse(localStorage.getItem(LSN)||"[]")}catch(e){nu=[]}try{const o=JSON.parse(localStorage.getItem(LS)||'{}');users=o.users||[];checks=o.checks||[]}catch(e){users=[];checks=[]}}
+function lsSave(){try{localStorage.setItem(LSN,JSON.stringify(nu))}catch(e){}try{localStorage.setItem(LS,JSON.stringify({users,checks}))}catch(e){}}
+async function put(kind,obj){
+ if(mode==='db'){try{await DB.collection(kind).doc(obj.id).set(obj);return true}catch(e){mode='local';lsLoad();refresh()}}
+ const arr=kind==='users'?users:checks;const i=arr.findIndex(x=>x.id===obj.id);i<0?arr.push(obj):arr[i]=obj;lsSave();refresh();return false}
+async function del(kind,id){
+ if(mode==='db'){try{await DB.collection(kind).doc(id).delete();return}catch(e){mode='local';lsLoad()}}
+ if(kind==='checks')checks=checks.filter(x=>x.id!==id);lsSave();refresh()}
+async function initDb(){
+ lsLoad();refresh();
+ try{DB=await window.claude.use('db')}catch(e){DB=null}
+ if(!DB){refresh();return}
+ mode='db';users=[];checks=[];nu=[];
+ const fail=()=>{mode='local';lsLoad();refresh()};
+ DB.collection('users').onSnapshot(s=>{users=s.docs.map(d=>d.data());refresh()},fail);
+ DB.collection('checks').onSnapshot(s=>{checks=s.docs.map(d=>d.data());refresh()},fail);
+ DB.collection('nutri').onSnapshot(s=>{nu=s.docs.map(d=>d.data());refresh()},fail);
+}
+const allUsers=()=>[...DEF.filter(d=>!users.some(u=>u.id===d.id)),...users.filter(u=>u.id!=='cmd')];
+const nameOf=id=>id==='cmd'?CMD.name:(allUsers().find(u=>u.id===id)||{name:'?'}).name;
+const dayOf=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dl=k=>k.slice(8)+'/'+k.slice(5,7);
+const fmt=t=>new Date(t).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const mine=id=>checks.filter(c=>c.uid===id).sort((a,b)=>a.ts-b.ts);
+function daily(id){const m={};mine(id).forEach(c=>m[dayOf(c.ts)]=c);return m}
+
+/* ---------- Cálculo ---------- */
+function calc(ans){
+ const byD={};let any=false,crit=0;const lv=[];
+ Q.forEach((q,i)=>{if(ans[i]===undefined)return;any=true;const l=q.lv[ans[i]];(byD[q.d]=byD[q.d]||[]).push(l);lv[i]=l;if(l===2)crit++});
+ let w=0,tot=0;const ds={};
+ for(const d in byD){const r=byD[d].map(l=>RISK[l]);ds[d]=.6*r.reduce((a,b)=>a+b)/r.length+.4*Math.max(...r);w+=D[d][1];tot+=D[d][1]*ds[d]}
+ const idx=w?Math.round(tot/w):null;
+ const cd=Object.keys(byD).filter(d=>byD[d].includes(2)).length;const R=[];
+ if(idx!==null&&idx>65)R.push('Tu nivel de malestar general es muy alto.');
+ if(ans[0]===0)R.push('Dormiste menos de 4 horas.');
+ if(ans[7]===4)R.push('Sentís que nada va a mejorar, en grado máximo.');
+ if(cd>=2)R.push('Hay respuestas preocupantes en '+cd+' áreas a la vez.');
+ let s=null;
+ if(!any)s=null;else if(R.length)s=3;else if(idx===null)s=0;else if(!crit&&idx<=25)s=0;else if(!crit&&idx<=45)s=1;else s=2;
+ return{s,idx,ds,lv,R,any};
+}
+
+/* ---------- Pantalla: inicio ---------- */
+function renderHome(){
+ const last=id=>{const c=mine(id).pop();return c?'Último: '+ST[c.s][0].toLowerCase()+' ('+dl(dayOf(c.ts))+')':'Sin chequeos todavía'};
+ const card=(u,cls)=>'<button type="button" class="ucard '+cls+'" data-u="'+esc(u.id)+'"><span class="av">'+esc(u.name[0].toUpperCase())+'</span><span>'+esc(u.name)+'<small>'+(cls?'Ver historial de la tripulación':last(u.id))+'</small></span></button>';
+ $('ulist').innerHTML=allUsers().map(u=>card(u,'')).join('')+card(CMD,'cmd')+'<button type="button" class="ucard cmd" data-u="med"><span class="av">M</span><span>Personal médico<small>Laboratorio, DXA y calendario de hitos</small></span></button>';
+ $('mode').textContent=mode==='db'?'Guardado compartido activo: toda la tripulación ve el mismo historial.':'Guardado solo en este dispositivo. Para compartir el historial entre dispositivos, invitá a la tripulación como colaboradores del artefacto.';
+}
+$('ulist').onclick=e=>{const b=e.target.closest('[data-u]');if(!b)return;const id=b.dataset.u;
+ if(id==='cmd')openCmd();else if(id==='med')openMed();else openCrew(id)};
+$('addf').onsubmit=e=>{e.preventDefault();const n=$('newn').value.trim();if(!n)return;
+ put('users',{id:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:n,ts:Date.now()});$('newn').value=''};
+
+/* ---------- Navegación ---------- */
+function show(v){view=v;['home','crew','cmd','med'].forEach(x=>$(x).hidden=x!==v);$('top').hidden=v==='home';window.scrollTo(0,0)}
+$('out').onclick=()=>{cur=null;show('home');renderHome()};
+function refresh(){if(view==='home')renderHome();else if(view==='crew'){renderHist();if(tab==='nu')renderNu()}else if(view==='med')renderMed();else renderCmdAll()}
+
+/* ---------- Pantalla: tripulante ---------- */
+const ans={};let saved=false;
+function buildQs(){
+ let h='';
+ Object.keys(G).forEach(g=>{h+='<fieldset><legend>'+G[g]+'</legend>';
+  Q.forEach((q,i)=>{if(q.d!==g)return;
+   h+='<div class="q"><p id="q'+i+'">'+q.t+'</p><div class="opts" role="group" aria-labelledby="q'+i+'">'+q.o.map((o,j)=>'<button type="button" data-q="'+i+'" data-v="'+j+'" aria-pressed="false">'+o+'</button>').join('')+'</div>'+(q.s?'<div class="ends"><span>1 = '+q.a+'</span><span>5 = '+q.b+'</span></div>':'')+'</div>'});
+  h+='</fieldset>'});
+ $('qs').innerHTML=h;
+}
+function openCrew(id){cur=id;for(const k in ans)delete ans[k];saved=false;$('who').textContent='Usuario: '+nameOf(id);tab='mh';nq={};nff={};ffqOpen=false;nm='';nerr='';show('crew');evalNow();renderHist();applyTab()}
+let last=null;
+function evalNow(){
+ document.querySelectorAll('[data-q]').forEach(b=>b.setAttribute('aria-pressed',ans[b.dataset.q]===+b.dataset.v));
+ const r=last=calc(ans),{s,idx,ds,lv,R}=r;
+ const arc=$('arc'),st=$('st'),pill=$('pill');
+ $('num').textContent=idx===null?(s===3?'100':'—'):idx;
+ arc.setAttribute('stroke-dasharray',(idx===null?(s===3?100:0):idx)+' 100');
+ if(s===null){st.textContent='Sin respuestas';st.className='big s0';pill.textContent='Respondé las preguntas';pill.style.cssText='background:var(--line);color:var(--mut)';arc.setAttribute('stroke','var(--mut)')}
+ else{const t=ST[s];st.textContent=t[0];st.className='big '+t[2];pill.textContent=t[1];pill.style.cssText='background:'+t[4]+';color:'+t[3];arc.setAttribute('stroke',t[3])}
+ $('alert').innerHTML=s===3?'<div class="alert pulse" role="alert"><h3>Qué hacer ahora</h3><ol style="margin:0;padding-left:20px"><li>Avisá de inmediato al médico de a bordo y al Control de Misión.</li><li>No te quedes solo: pedile a un compañero que esté con vos.</li><li>Dejá las tareas críticas hasta que te evalúen.</li><li>Pedí una conferencia privada con apoyo psicológico.</li></ol></div>':'';
+ $('doms').innerHTML=Object.keys(D).map(d=>{const v=ds[d];
+  return '<div><span>'+D[d][0]+'</span><span class="bar"><i style="width:'+(v===undefined?0:Math.round(v))+'%;background:'+(v===undefined?'var(--line)':rc(v))+'"></i></span><b>'+(v===undefined?'—':Math.round(v))+'</b></div>'}).join('');
+ let h='';
+ if(R.length)h+='<p style="margin:0"><b>Por qué</b></p><ul class="why">'+R.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+ if(s!==null)h+='<div class="tip nurse"><b>¿Querés que te dé una mano?</b><p class="mut" style="margin:4px 0 10px">Hablá con Cecilia, tu acompañante de salud mental y nutrición. Te escucha y te orienta.</p><button type="button" class="pri" data-nurse="1">Hablar con Cecilia</button></div>';
+ $('why').innerHTML=h;
+ const miss=Q.filter((q,i)=>ans[i]===undefined).length;
+ $('save').disabled=miss>0||saved;
+ $('save').textContent=saved?'Chequeo guardado':'Guardar chequeo';
+ if(!saved)$('savemsg').textContent=miss?'Faltan '+miss+' respuesta'+(miss>1?'s':'')+' para poder guardar.':'';
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b||view!=='crew')return;
+ if(b.dataset.q!==undefined){ans[b.dataset.q]=+b.dataset.v;saved=false;$('savemsg').textContent='';evalNow()}
+
+});
+const EX={ok:[3,0,0,4,4,4,0,0,0,0,0,0,0,0],warn:[2,1,1,2,2,2,2,1,2,2,1,2,2,1],bad:[0,2,2,0,0,0,4,4,4,4,3,4,4,4]};
+document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{EX[b.dataset.ex].forEach((v,i)=>ans[i]=v);saved=false;evalNow()});
+$('clr').onclick=()=>{for(const k in ans)delete ans[k];saved=false;$('savemsg').textContent='';evalNow()};
+$('save').onclick=async()=>{
+ if(!last||last.s===null)return;
+ const a=Q.map((q,i)=>ans[i]);
+ const c={id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),uid:cur,ts:Date.now(),idx:last.idx,s:last.s,ds:Object.fromEntries(Object.entries(last.ds).map(([k,v])=>[k,Math.round(v)])),ans:a};
+ saved=true;$('save').disabled=true;$('save').textContent='Chequeo guardado';
+ $('savemsg').textContent='Guardado el '+fmt(c.ts)+'. Ya figura en tu historial.';
+ await put('checks',c);
+};
+function renderHist(){
+ const m=mine(cur);
+ if(!m.length){$('myh').innerHTML='<p class="mut">Todavía no guardaste chequeos. Completá el cuestionario y tocá «Guardar chequeo».</p>';return}
+ const dd=daily(cur),days=Object.keys(dd).sort();
+ $('myh').innerHTML=chart([{name:'Malestar',color:'#4f8cff',pts:days.map((d,i)=>({i,v:dd[d].idx}))}],days,200)+
+ '<div class="wx"><table><thead><tr><th>Fecha</th><th>Malestar</th><th>Estado</th></tr></thead><tbody>'+m.slice().reverse().slice(0,6).map(c=>'<tr><td>'+fmt(c.ts)+'</td><td>'+c.idx+'</td><td class="'+ST[c.s][2]+'"><b>'+ST[c.s][0]+'</b></td></tr>').join('')+'</tbody></table></div>';
+}
+
+/* ---------- Gráfico de líneas (SVG) ---------- */
+const PAL=['#4f8cff','#f0a030','#b86cf0','#2ec4a0','#ff6b8a','#9acd32','#e0c000','#20b2e0'];
+function chart(series,days,H){
+ const W=640,L=34,R=12,T=10,B=26,pw=W-L-R,ph=H-T-B;
+ const X=i=>L+(days.length<2?pw/2:i*pw/(days.length-1)),Y=v=>T+ph*(1-v/100);
+ let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Evolución del malestar por día (más alto = peor)" style="width:100%;height:auto;display:block">';
+ [[0,25,'--ok',.14],[25,45,'--warn',.14],[45,65,'--bad',.08],[65,100,'--bad',.16]].forEach(b=>s+='<rect x="'+L+'" y="'+Y(b[1])+'" width="'+pw+'" height="'+(Y(b[0])-Y(b[1]))+'" fill="var('+b[2]+')" opacity="'+b[3]+'"/>');
+ [0,25,45,65,100].forEach(v=>s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(Y(v)+3)+'" text-anchor="end" font-size="10" fill="var(--mut)">'+v+'</text>');
+ const step=Math.ceil(days.length/8);
+ days.forEach((d,i)=>{if(i%step===0)s+='<text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="var(--mut)">'+dl(d)+'</text>'});
+ series.forEach(se=>{
+  if(se.pts.length>1)s+='<polyline fill="none" stroke="'+se.color+'" stroke-width="2.5" stroke-linejoin="round" points="'+se.pts.map(p=>X(p.i)+','+Y(p.v)).join(' ')+'"/>';
+  se.pts.forEach(p=>s+='<circle cx="'+X(p.i)+'" cy="'+Y(p.v)+'" r="4" fill="'+se.color+'"><title>'+esc(se.name)+' · '+dl(days[p.i])+' · '+p.v+'</title></circle>')});
+ return s+'</svg>';
+}
+const legend=ss=>'<div class="leg">'+ss.map(x=>'<span><i style="background:'+x.color+'"></i>'+esc(x.name)+'</span>').join('')+'</div>';
+
+/* ---------- Pantalla: comandante ---------- */
+function openCmd(){$('who').textContent='Usuario: '+CMD.name;show('cmd');renderCmdAll()}
+const members=()=>allUsers().filter(u=>mine(u.id).length||true);
+function renderCmd(){
+ const ms=members();const withData=ms.filter(u=>mine(u.id).length);
+ if(!selId||!ms.some(u=>u.id===selId))selId=(withData[0]||ms[0]||{}).id;
+ let h='';
+ const bad=withData.filter(u=>mine(u.id).pop().s>=2);
+ if(bad.length)h+='<div class="alert" role="alert"><h3>Atención requerida</h3><ul class="why">'+bad.map(u=>{const c=mine(u.id).pop();return '<li><b>'+esc(u.name)+'</b>: '+ST[c.s][0]+' (malestar '+c.idx+', '+fmt(c.ts)+')</li>'}).join('')+'</ul></div>';
+ h+='<div class="mem">'+ms.map(u=>{const c=mine(u.id).pop();
+  return '<button type="button" data-m="'+esc(u.id)+'" aria-pressed="'+(u.id===selId)+'"><b>'+esc(u.name)+'</b>'+(c?'<span class="'+ST[c.s][2]+'">'+ST[c.s][0]+' · '+c.idx+'</span><br><small class="mut">'+fmt(c.ts)+'</small>':'<span class="mut">Sin chequeos</span>')+'</button>'}).join('')+'</div>';
+ if(!withData.length)h+='<div class="card"><p class="mut" style="margin:0">Todavía no hay chequeos guardados. Cuando la tripulación complete el cuestionario vas a ver acá su evolución día a día. También podés cargar datos de demostración para probar los gráficos.</p></div>';
+ else{
+  const days=[...new Set(withData.flatMap(u=>Object.keys(daily(u.id))))].sort();
+  const ser=withData.map((u,k)=>{const d=daily(u.id);return{name:u.name,color:PAL[k%PAL.length],pts:days.map((x,i)=>d[x]?{i,v:d[x].idx}:null).filter(Boolean)}});
+  h+='<div class="card"><h2>Evolución de toda la tripulación</h2><p class="note" style="margin-top:-6px">Malestar de 0 a 100 por día (más alto = peor). Si hay varios chequeos en un día, cuenta el último.</p>'+chart(ser,days,260)+legend(ser)+'</div>';
+  const sel=ms.find(u=>u.id===selId),m=mine(selId);
+  if(m.length){
+   const d=daily(selId),dd=Object.keys(d).sort();
+   const ss=[{name:'Malestar general',color:'#4f8cff',k:null},{name:'Sueño',color:'#f0a030',k:'sleep'},{name:'Ánimo',color:'#b86cf0',k:'mood'},{name:'Ansiedad',color:'#2ec4a0',k:'anx'},{name:'Estrés',color:'#ff6b8a',k:'str'}]
+    .map(x=>({...x,pts:dd.map((y,i)=>({i,v:x.k?d[y].ds[x.k]:d[y].idx})).filter(p=>p.v!==undefined)}));
+   h+='<div class="card"><h2>Detalle de '+esc(sel.name)+'</h2>'+chart(ss,dd,260)+legend(ss)+
+   '<h2 style="margin-top:18px">Historial</h2><div class="wx"><table><thead><tr><th>Fecha</th><th>General</th><th>Sueño</th><th>Ánimo</th><th>Ansiedad</th><th>Estrés</th><th>Estado</th></tr></thead><tbody>'+
+   m.slice().reverse().map(c=>'<tr><td>'+fmt(c.ts)+'</td><td><b>'+c.idx+'</b></td><td>'+(c.ds.sleep??'—')+'</td><td>'+(c.ds.mood??'—')+'</td><td>'+(c.ds.anx??'—')+'</td><td>'+(c.ds.str??'—')+'</td><td class="'+ST[c.s][2]+'"><b>'+ST[c.s][0]+'</b></td></tr>').join('')+'</tbody></table></div></div>';
+  }else h+='<div class="card"><p class="mut" style="margin:0">'+esc(sel.name)+' todavía no tiene chequeos.</p></div>';
+ }
+ h+='<div class="btns"><button type="button" id="demo">Cargar datos de demostración</button>'+(checks.some(c=>c.demo)?'<button type="button" id="undemo">Quitar datos de demostración</button>':'')+'</div><p class="note">Los datos de demostración son inventados y se pueden quitar cuando quieras.</p>';
+ $('cmdbody').innerHTML=h;
+}
+$('cmdbody').onclick=async e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.m){selId=b.dataset.m;renderCmd()}
+ else if(b.id==='demo'){
+  const ms=allUsers().slice(0,4),now=Date.now();let k=0;
+  for(const u of ms){const base=[12,22,70,30][k%4],trend=[0,2.6,-3.2,.4][k%4];
+   for(let d=9;d>=0;d--){
+    const idx=Math.max(2,Math.min(98,Math.round(base+trend*(9-d)+(Math.sin(d*2.1+k)*6))));
+    const ds={sleep:Math.min(100,Math.max(0,idx+Math.round(Math.sin(d+k)*8))),mood:Math.min(100,Math.max(0,idx-4)),anx:Math.min(100,Math.max(0,idx+5)),str:Math.min(100,Math.max(0,idx+Math.round(Math.cos(d+k)*9)))};
+    await put('checks',{id:'demo-'+u.id+'-'+d,uid:u.id,ts:now-d*86400000,idx,s:stOf(idx),ds,demo:true})}
+   k++}
+ }else if(b.id==='undemo'){for(const c of checks.filter(c=>c.demo))await del('checks',c.id)}
+};
+/* ================= NUTRICIÓN (colección «nutri», separada de lo existente) ================= */
+const LSN='astro_nutri_v1',DAY=864e5;
+let nu=[],tab='mh',cTab='mh',nq={},nff={},ffqOpen=false,nm='',nerr='',selN=null,medU=null,imp=null,dr={};
+/* Umbrales provisorios: A VALIDAR POR EL MÉDICO DE LA MISIÓN (FFQ 7 d y masa 30 d vienen de la planilla, reglas R06 y R07) */
+const CFG={ffq:7,mass:30,lossW:2,lossB:5};
+const NSL=['EN RANGO','A VIGILAR','ALERTA','EMERGENCIA'];
+const LIM='<div class="lim"><b>Qué mide y qué no.</b> En vuelo solo se miden la ingesta (chequeo diario y FFQ) y la masa corporal. El estado de vitaminas, hierro y hueso no se puede ver hasta el regreso (laboratorio y DXA), así que «en rango» acá no significa que esos valores estén bien.</div>';
+const TH=()=>'<p class="note">Umbrales provisorios, a validar por el médico de la misión: pérdida de peso ≥'+CFG.lossW+'% (vigilar) y ≥'+CFG.lossB+'% (alerta) respecto al valor base; FFQ atrasado si pasan más de '+CFG.ffq+' días; masa sin medir si pasan más de '+CFG.mass+' días; baja sostenida de ingesta = 3 días seguidos con puntaje ≥4 de 6.</p>';
+const NQ=[['ap','Apetito de hoy',['Normal','Disminuido','Muy bajo']],['me','¿Comiste tus comidas del día?',['Todas','Algunas','Casi ninguna']],['fl','Líquidos que tomaste',['Suficientes','Pocos','Muy pocos']],['gi','Molestias digestivas (náuseas, reflujo, hinchazón, estreñimiento)',['Ninguna','Leves','Marcadas']]];
+const FG=['Frutas y verduras','Lácteos y derivados','Carnes, huevos y legumbres','Pescado','Cereales, pan y pasta','Frutos secos y grasas saludables','Alimentos fortificados o suplementos','Agua y otros líquidos'];
+const FF=['Casi nunca','1-2 veces','3-4 veces','5-6 veces','Todos los días'];
+const PN={P01:'Ingesta habitual (DAQ)',P02:'Estimación de ingesta (FFQ)',P03:'Registro dietético',P04:'Masa corporal',P05:'Talla',P06:'Masa muscular y ósea (DXA)',P07:'Estado proteico',P08:'Calcio / hueso',P09:'Estado antioxidante',P10:'Estado del hierro',P11:'Estado mineral',P12:'Vitaminas liposolubles',P13:'Vitaminas hidrosolubles',P14:'Química sanguínea general',P15:'Riesgo de cálculos renales'};
+/* Hitos de la planilla (hoja 1_Cronograma): id, fase, actividad, ancla (L lanzamiento / A aterrizaje), unidad, desde, hasta */
+const HI=[['H01','Pre','Familiarización y entrenamiento FFQ','L','m',-21,-18],['H02','Pre','Evaluación nutricional AME','L','m',-21,-18],['H03','Pre','Refresco de FFQ','L','d',-90,-30],['H04','Pre','Evaluación nutricional L-90/30','L','d',-90,-30],['H05','Pre','DXA (composición corporal)','L','m',-21,-18],['H06','Post','Evaluación nutricional R+0','A','d',0,0],['H07','Post','DXA postvuelo (R+5/30)','A','d',5,30],['H08','Post','Evaluación nutricional R+20/30','A','d',20,30],['H09','Post','Debriefing postvuelo','A','d',null,null]];
+
+const nid=()=>'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const nuOf=(id,k)=>nu.filter(x=>x.uid===id&&x.kind===k).sort((a,b)=>a.ts-b.ts);
+const dayN=id=>{const m={};nuOf(id,'dq').forEach(c=>m[dayOf(c.ts)]=c);return m};
+const dsince=t=>Math.floor((Date.now()-t)/DAY);
+const mis=id=>nu.find(x=>x.id==='mis-'+id);
+const badge=(s,t)=>s===null||s===undefined?'<span class="pill" style="background:var(--line);color:var(--mut)">Sin datos</span>':'<span class="pill" style="background:'+ST[s][4]+';color:'+ST[s][3]+'">'+(t||NSL[s])+'</span>';
+async function putN(o){
+ if(mode==='db'){try{await DB.collection('nutri').doc(o.id).set(o);return}catch(e){mode='local';lsLoad();refresh()}}
+ const i=nu.findIndex(x=>x.id===o.id);i<0?nu.push(o):nu[i]=o;lsSave();refresh()}
+async function delN(id){
+ if(mode==='db'){try{await DB.collection('nutri').doc(id).delete();return}catch(e){mode='local';lsLoad()}}
+ nu=nu.filter(x=>x.id!==id);lsSave();refresh()}
+
+/* ---- Cálculo del semáforo nutricional ---- */
+function nsum(id){
+ const dn=dayN(id),ds=Object.keys(dn).sort(),sc=ds.map(d=>dn[d].ap+dn[d].me+dn[d].fl),mass=nuOf(id,'mass'),ffq=nuOf(id,'ffq'),S=[];
+ const base=mass[0],last=mass[mass.length-1],pct=mass.length>1?(last.kg-base.kg)/base.kg*100:null;
+ const ffqD=ffq.length?dsince(ffq[ffq.length-1].ts):null,massD=last?dsince(last.ts):null;
+ let il=0;
+ if(sc.length>=3&&sc.slice(-3).every(v=>v>=4))il=2;else if(sc.slice(-5).filter(v=>v>=3).length>=3)il=1;
+ if(il)S.push({t:'in',l:il,x:il>1?'Baja sostenida de ingesta: 3 días seguidos con apetito, comidas o líquidos muy reducidos.':'Ingesta baja en 3 de los últimos 5 chequeos.'});
+ const g3=ds.slice(-3).map(d=>dn[d].gi);
+ if(g3.length===3&&g3.every(v=>v===2))S.push({t:'in',l:1,x:'Molestias digestivas marcadas 3 días seguidos.'});
+ let wl=0;if(pct!==null){if(pct<=-CFG.lossB)wl=2;else if(pct<=-CFG.lossW)wl=1}
+ if(wl)S.push({t:'pw',l:wl,x:'Pérdida de peso de '+Math.abs(pct).toFixed(1)+'% respecto al valor base.'});
+ if(ffqD===null||ffqD>CFG.ffq)S.push({t:'cu',l:1,x:ffqD===null?'Todavía no cargó ningún FFQ semanal.':'FFQ atrasado: hace '+ffqD+' días (límite '+CFG.ffq+').'});
+ if(massD===null||massD>CFG.mass)S.push({t:'cu',l:1,x:massD===null?'Todavía no cargó su masa corporal.':'Masa corporal sin medir hace '+massD+' días (límite '+CFG.mass+').'});
+ const has=nu.some(x=>x.uid===id&&['dq','ffq','mass'].includes(x.kind));
+ return{s:has?Math.max(0,...S.map(x=>x.l)):null,S,il,wl,pct,base,last,ffqD,massD,sc};
+}
+/* ---- Vista unificada: cruza salud mental y nutrición ---- */
+function comb(id){
+ const n=nsum(id),m=mine(id).pop(),mh=m?m.s:null,d=(m&&m.ds)||{},f=[],low=n.il>0||n.wl>0;
+ if(low)f.push('ingesta o peso en descenso');if(d.mood>25)f.push('ánimo bajo');if(d.sleep>25)f.push('mal sueño');
+ const b=Math.max(mh===null?0:Math.min(mh,2),n.s||0);let c=b;
+ if(f.length>=3)c=Math.max(c,2);else if(f.length===2&&low)c=Math.max(c,1);
+ if(mh===3)c=3;
+ return{c,f,n,m,mh,esc:c>b&&mh!==3,any:mh!==null||n.s!==null};
+}
+/* ---- Hitos ---- */
+function hwin(h,mi){const a=h[3]==='L'?mi.ch:mi.dg;if(!a||h[5]===null)return null;const b=new Date(a+'T00:00:00'),f=k=>{const x=new Date(b);h[4]==='m'?x.setMonth(x.getMonth()+k):x.setDate(x.getDate()+k);return x};return[f(h[5]),f(h[6])]}
+function hst(h,id){
+ const mi=mis(id)||{};
+ if((mi.done&&mi.done[h[0]])||nu.some(x=>x.uid===id&&x.kind==='lab'&&x.hito===h[0]))return['COMPLETADO','s-ok'];
+ const w=hwin(h,mi);if(!w)return['SIN FECHA','mut'];const t=Date.now();
+ return t<w[0].getTime()?['PENDIENTE','mut',w]:t<=w[1].getTime()+DAY?['EN VENTANA','s-warn',w]:['VENCIDO','s-bad',w];
+}
+const fd=d=>d.toLocaleDateString('es-AR');
+/* ---- Piezas visuales ---- */
+function btns(attr,key,opts,sel){return '<div class="opts">'+opts.map((o,j)=>'<button type="button" '+attr+'="'+key+'" data-v="'+j+'" aria-pressed="'+(sel===j)+'">'+o+'</button>').join('')+'</div>'}
+function chips(id){const dn=dayN(id);let h='<div class="chips">';for(let i=13;i>=0;i--){const k=dayOf(Date.now()-i*DAY),c=dn[k],v=c?c.ap+c.me+c.fl:null;h+='<i title="'+dl(k)+(v===null?' · sin chequeo':' · puntaje '+v+' de 6')+'" style="background:'+(v===null?'var(--line)':v<=1?'var(--ok)':v<=3?'var(--warn)':'var(--bad)')+'"></i>'}return h+'</div><p class="note">Últimos 14 días: verde normal, ámbar reducida, rojo muy reducida, gris sin chequeo.</p>'}
+function mchart(id){
+ const p=nuOf(id,'mass'),b=p[0].kg,W=640,H=170,L=40,R=12,T=10,B=24,vs=p.map(x=>x.kg),lo=Math.min(...vs)-1,hi=Math.max(...vs)+1;
+ const X=i=>L+(p.length<2?(W-L-R)/2:i*(W-L-R)/(p.length-1)),Y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo));
+ let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Masa corporal y valor base" style="width:100%;height:auto;display:block"><line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(b)+'" y2="'+Y(b)+'" stroke="var(--mut)" stroke-dasharray="5 4"/><text x="'+(L-6)+'" y="'+(Y(b)+3)+'" text-anchor="end" font-size="10" fill="var(--mut)">base</text><polyline fill="none" stroke="var(--acc)" stroke-width="2.5" points="'+p.map((x,i)=>X(i)+','+Y(x.kg)).join(' ')+'"/>';
+ p.forEach((x,i)=>s+='<circle cx="'+X(i)+'" cy="'+Y(x.kg)+'" r="4" fill="var(--acc)"><title>'+dl(dayOf(x.ts))+' · '+x.kg+' kg</title></circle><text x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="var(--mut)">'+dl(dayOf(x.ts))+'</text>');
+ return s+'</svg>'}
+function labCard(id){
+ const L=nuOf(id,'lab'),T='<div class="card"><h2>Laboratorio y DXA: línea base y regreso</h2>';
+ if(!L.length)return T+'<p class="mut" style="margin:0">El personal médico todavía no cargó resultados.</p></div>';
+ const P={};L.forEach(r=>{(P[r.pid]=P[r.pid]||{name:r.name})[r.ph]=r});
+ const cell=r=>r?r.val+' '+esc(r.unit||'')+(r.fa===false?' <span class="s-warn" title="Ayuno menor a 8 h">⚠</span>':'')+(r.min!=null&&r.max!=null&&(r.val<r.min||r.val>r.max)?' <span class="s-bad">fuera de rango</span>':''):'—';
+ return T+'<p class="note" style="margin-top:-6px">Se miden solo antes y después del vuelo, sin medición intermedia. Los rangos de referencia vienen del Apéndice / JSC 28566; si no están cargados no se marca «fuera de rango».</p><div class="wx"><table><thead><tr><th>Parámetro</th><th>Línea base (pre)</th><th>Regreso (post)</th><th>Cambio</th></tr></thead><tbody>'+Object.keys(P).sort().map(k=>{const p=P[k],ch=p.pre&&p.post?(p.post.val-p.pre.val):null;return '<tr><td>'+esc(p.name)+'</td><td>'+cell(p.pre)+'</td><td>'+cell(p.post)+'</td><td>'+(ch===null?'—':(ch>0?'+':'')+(+ch.toFixed(3))+(p.pre.val?' ('+(ch>0?'+':'')+(ch/p.pre.val*100).toFixed(1)+'%)':''))+'</td></tr>'}).join('')+'</tbody></table></div></div>';
+}
+function ffqInfo(id){const f=nuOf(id,'ffq').pop();if(!f)return '';const low=FG.filter((g,i)=>f.a[i]<=1);return '<p style="margin:10px 0 0"><b>Último FFQ</b> ('+dl(dayOf(f.ts))+'): adecuación orientativa '+Math.round(f.a.reduce((a,b)=>a+b,0)/(4*f.a.length)*100)+'/100.'+(low.length?' Grupos con consumo bajo: '+low.join(', ')+'.':'')+'</p>'}
+
+/* ---- Pestaña Nutrición del tripulante ---- */
+function applyTab(){document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===tab));$('mhp').hidden=tab!=='mh';$('nup').hidden=tab!=='nu';if(tab==='nu')renderNu()}
+function renderNu(){
+ const id=cur,n=nsum(id),td=nuOf(id,'dq').filter(c=>dayOf(c.ts)===dayOf(Date.now())).pop(),nms=nuOf(id,'mass').length;
+ let h=LIM+'<div class="grid2"><div><div class="card"><h2>Chequeo rápido de hoy (1 minuto)</h2>'+NQ.map(q=>'<div class="q"><p>'+q[1]+'</p>'+btns('data-nq',q[0],q[2],nq[q[0]])+'</div>').join('')+'<button type="button" class="pri" id="nsq" style="width:100%;margin-top:8px"'+(NQ.every(q=>nq[q[0]]!==undefined)?'':' disabled')+'>Guardar chequeo de hoy</button><p class="note" style="margin:8px 0 0">'+(td?'Hoy ya cargaste uno ('+fmt(td.ts)+'). Si guardás otro, el último es el que cuenta.':'Todavía no cargaste el chequeo de hoy.')+'</p></div>';
+ h+='<div class="card"><h2>FFQ semanal</h2><p class="note" style="margin-top:-6px">Frecuencia con la que comiste cada grupo de alimentos en la última semana. '+(n.ffqD===null?'Todavía no cargaste ninguno.':'Último: hace '+n.ffqD+' días.')+'</p>';
+ h+=!ffqOpen?'<button type="button" class="pri" id="nffo">Completar el FFQ de esta semana</button>':FG.map((g,i)=>'<div class="q"><p>'+g+'</p>'+btns('data-nf',i,FF,nff[i])+'</div>').join('')+'<div class="btns" style="margin-top:8px"><button type="button" class="pri" id="nsf"'+(FG.every((g,i)=>nff[i]!==undefined)?'':' disabled')+'>Guardar FFQ</button><button type="button" id="nffc">Cancelar</button></div>';
+ h+='</div></div><div><div class="card res"><h2>Tu semáforo nutricional</h2>'+badge(n.s)+(n.S.length?'<ul class="why">'+n.S.map(x=>'<li class="'+(x.l>1?'s-bad':'s-warn')+'">'+x.x+'</li>').join('')+'</ul>':'<p class="mut" style="margin:8px 0 0">'+(n.s===null?'Cargá tu primer chequeo para ver el semáforo.':'Sin señales de alerta.')+'</p>')+'<h3 style="margin-top:14px">Tu ingesta, últimos 14 días</h3>'+chips(id)+'</div>';
+ h+='<div class="card"><h2>Masa corporal (mensual)</h2><p class="note" style="margin-top:-6px">'+(n.last?'Base: '+n.base.kg+' kg · Última: '+n.last.kg+' kg ('+dl(dayOf(n.last.ts))+')'+(n.pct!==null?' · Cambio: '+(n.pct>0?'+':'')+n.pct.toFixed(1)+'%':''):'Tu primera medición queda como valor base.')+'</p><div class="add"><input type="number" id="nmass" step="0.1" min="20" max="300" placeholder="kg" value="'+esc(nm)+'" aria-label="Masa corporal en kilos"><button class="pri" type="button" id="nsm">Guardar masa</button></div><p class="s-bad note" style="margin:6px 0 0">'+nerr+'</p>'+(nms>1?mchart(id):'')+'</div></div></div>';
+ $('nup').innerHTML=h;
+}
+/* ---- Panel del comandante: Nutrición ---- */
+function renderNC(){
+ const ms=allUsers();if(!selN||!ms.some(u=>u.id===selN))selN=(ms[0]||{}).id;
+ const R=ms.map(u=>({u,n:nsum(u.id)}));let h=LIM;
+ const blk=(title,fn,warn)=>{const a=R.flatMap(r=>r.n.S.filter(fn).map(x=>'<li><b>'+esc(r.u.name)+'</b>: '+x.x+'</li>'));return a.length?'<div class="alert" role="alert"'+(warn?' style="border-color:var(--warn);background:var(--warnbg)"':'')+'><h3'+(warn?' style="color:var(--warn)"':'')+'>'+title+'</h3><ul class="why">'+a.join('')+'</ul></div>':''};
+ h+=blk('Alertas de tendencia',x=>x.t!=='cu',false)+blk('Alertas de cumplimiento',x=>x.t==='cu',true);
+ const hv=R.flatMap(r=>HI.filter(x=>hst(x,r.u.id)[0]==='VENCIDO').map(x=>'<li><b>'+esc(r.u.name)+'</b>: hito vencido, '+x[0]+' '+x[2]+'.</li>'));
+ if(hv.length)h+='<div class="alert" style="border-color:var(--warn);background:var(--warnbg)"><h3 style="color:var(--warn)">Hitos vencidos</h3><ul class="why">'+hv.join('')+'</ul></div>';
+ h+='<div class="mem">'+R.map(r=>{const n=r.n;return '<button type="button" data-nm="'+esc(r.u.id)+'" aria-pressed="'+(r.u.id===selN)+'"><b>'+esc(r.u.name)+'</b>'+badge(n.s)+'<br><small class="mut">Peso: '+(n.pct===null?'sin cambio medible':(n.pct>0?'+':'')+n.pct.toFixed(1)+'%')+' · FFQ: '+(n.ffqD===null?'nunca':'hace '+n.ffqD+' d')+'</small></button>'}).join('')+'</div>';
+ const sel=ms.find(u=>u.id===selN);
+ if(sel){const n=nsum(selN);h+='<div class="card"><h2>Detalle de '+esc(sel.name)+' '+badge(n.s)+'</h2>'+(n.S.length?'<ul class="why">'+n.S.map(x=>'<li class="'+(x.l>1?'s-bad':'s-warn')+'">'+x.x+'</li>').join('')+'</ul>':'<p class="mut">Sin señales.</p>')+'<h3 style="margin-top:14px">Chequeo diario</h3>'+chips(selN)+(nuOf(selN,'mass').length>1?'<h3>Masa corporal</h3>'+mchart(selN):'')+ffqInfo(selN)+'</div>'+labCard(selN)}
+ h+=TH()+'<div class="btns"><button type="button" id="ndemo">Cargar demostración de nutrición</button>'+(nu.some(x=>x.demo)?'<button type="button" id="nundemo">Quitar demostración de nutrición</button>':'')+'</div><p class="note">Los datos de demostración son inventados y se pueden quitar.</p>';
+ $('nbody').innerHTML=h;
+}
+/* ---- Panel del comandante: vista unificada ---- */
+function renderUC(){
+ const R=allUsers().map(u=>({u,c:comb(u.id)})).sort((a,b)=>b.c.c-a.c.c);let h=LIM;
+ const hot=R.filter(r=>r.c.c>=2&&r.c.any);
+ if(hot.length)h+='<div class="alert" role="alert"><h3>Atención requerida</h3><ul class="why">'+hot.map(r=>'<li><b>'+esc(r.u.name)+'</b>: '+NSL[r.c.c]+(r.c.esc?' (escalado por combinar señales)':'')+(r.c.f.length?'. Señales: '+r.c.f.join(', '):'')+'</li>').join('')+'</ul></div>';
+ h+='<div class="card"><h2>Salud mental y nutrición, juntas</h2><div class="wx"><table><thead><tr><th>Tripulante</th><th>Salud mental</th><th>Nutrición</th><th>Combinado</th><th>Señales cruzadas</th></tr></thead><tbody>'+R.map(r=>{const c=r.c;return '<tr><td><b>'+esc(r.u.name)+'</b></td><td>'+(c.m?badge(c.mh,ST[c.mh][0]+' · '+c.m.idx):badge(null))+'</td><td>'+badge(c.n.s)+'</td><td>'+(c.any?badge(c.c):badge(null))+(c.esc?' <small class="s-bad">escalado</small>':'')+'</td><td style="white-space:normal">'+(c.f.length?c.f.join(' + '):'—')+'</td></tr>'}).join('')+'</tbody></table></div><p class="note" style="margin:10px 0 0"><b>Regla de cruce:</b> si coinciden poca ingesta o pérdida de peso, ánimo bajo y mal sueño, la alerta sube a ALERTA aunque cada señal por separado sea leve; dos señales incluyendo ingesta o peso suben a A VIGILAR. Una emergencia de salud mental siempre prevalece. Ánimo y sueño se toman del último chequeo de salud mental (por encima de 25 de 100).</p></div>'+TH();
+ $('ubody').innerHTML=h;
+}
+function renderCmdAll(){
+ document.querySelectorAll('#ctabs button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ctab===cTab));
+ $('cmdbody').hidden=cTab!=='mh';$('nbody').hidden=cTab!=='nu';$('ubody').hidden=cTab!=='un';
+ if(cTab==='mh')renderCmd();else if(cTab==='nu')renderNC();else renderUC();
+}
+/* ---- Personal médico: calendario de hitos e importación de laboratorio ---- */
+function openMed(){$('who').textContent='Usuario: Personal médico';show('med');renderMed()}
+function renderMed(){
+ const ms=allUsers();if(!medU||!ms.some(u=>u.id===medU))medU=(ms[0]||{}).id;
+ const mi=mis(medU)||{},ch=dr.ch!==undefined?dr.ch:(mi.ch||''),dg=dr.dg!==undefined?dr.dg:(mi.dg||'');
+ let h='<div class="card"><div class="add"><label for="mdsel"><b>Tripulante</b></label><select id="mdsel">'+ms.map(u=>'<option value="'+esc(u.id)+'"'+(u.id===medU?' selected':'')+'>'+esc(u.name)+'</option>').join('')+'</select></div></div>';
+ h+='<div class="card"><h2>Calendario de hitos</h2><div class="add"><label for="mlch">Lanzamiento</label><input type="date" id="mlch" value="'+ch+'"><label for="mldg">Aterrizaje</label><input type="date" id="mldg" value="'+dg+'"><button type="button" class="pri" id="msd">Guardar fechas</button></div><div class="wx" style="margin-top:12px"><table><thead><tr><th>ID</th><th>Actividad</th><th>Ventana</th><th>Estado</th><th></th></tr></thead><tbody>'+HI.map(x=>{const s=hst(x,medU),dn=mi.done&&mi.done[x[0]];return '<tr><td>'+x[0]+'</td><td style="white-space:normal">'+x[2]+'</td><td>'+(s[2]?fd(s[2][0])+(x[5]!==x[6]?' a '+fd(s[2][1]):''):'—')+'</td><td class="'+s[1]+'"><b>'+s[0]+'</b></td><td><button type="button" data-done="'+x[0]+'">'+(dn?'Deshacer':'Marcar realizado')+'</button></td></tr>'}).join('')+'</tbody></table></div><p class="note">Un hito con resultados importados figura como completado. Las ventanas se calculan desde las fechas de la misión.</p></div>';
+ h+='<div class="card"><h2>Importar laboratorio y DXA</h2><p class="note" style="margin-top:-6px">Elegí la planilla de monitoreo nutricional (hoja «7_Resultados_Lab»). Se importan las filas con parámetro, hito y valor. Antes (H01 a H05) queda como línea base; después (H06 a H09), como regreso.</p><input type="file" id="mfile" accept=".xlsx,.xlsm" aria-label="Planilla de resultados">';
+ if(imp&&imp.err)h+='<p class="s-bad">'+imp.err+'</p>';
+ if(imp&&imp.done!==undefined)h+='<p class="s-ok"><b>Importación lista:</b> '+imp.done+' resultados guardados'+(imp.skip?' ('+imp.skip+' filas sin tripulante o sin hito válido, omitidas)':'')+'.</p>';
+ if(imp&&imp.rows){h+='<p><b>'+imp.rows.length+' resultados encontrados.</b> Asigná cada ID de la planilla a un tripulante:</p>'+Object.keys(imp.map).map(c=>'<div class="add" style="margin:6px 0"><span style="min-width:110px">'+esc(c)+'</span><select data-c="'+esc(c)+'"><option value="">No importar</option>'+ms.map(u=>'<option value="'+esc(u.id)+'"'+(imp.map[c]===u.id?' selected':'')+'>'+esc(u.name)+'</option>').join('')+'</select></div>').join('')+'<button type="button" class="pri" id="mimp" style="margin-top:8px">Importar resultados</button>'}
+ $('medbody').innerHTML=h+'</div>'+labCard(medU)+'<p class="note">Los resultados son datos clínicos: se guardan en la colección «nutri» y los ve quien tenga acceso al artefacto. Compartirlos requiere el consentimiento del tripulante.</p>';
+}
+async function parseXl(f){
+ if(!f)return;
+ if(!window.XLSX){imp={err:'No se pudo cargar el lector de Excel. Revisá la conexión y recargá.'};renderMed();return}
+ try{
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true}),ws=wb.Sheets['7_Resultados_Lab'];
+  if(!ws){imp={err:'No encontré la hoja «7_Resultados_Lab».'};renderMed();return}
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null}),hi=rows.findIndex(r=>r[0]==='ID tripulante'),num=x=>x===null||x===''||isNaN(+x)?null:+x,out=[];
+  rows.slice(hi+1).forEach(r=>{if(!r[0]||!PN[r[6]]||num(r[8])===null)return;out.push({cid:String(r[0]),sid:String(r[1]||'s'),hito:r[2]||'',ts:r[3] instanceof Date?r[3].getTime():null,fa:num(r[4])===null?null:+r[4]>=8,pid:r[6],val:+r[8],unit:r[9]&&r[9]!=='(definir)'?String(r[9]):'',min:num(r[10]),max:num(r[11])})});
+  if(hi<0||!out.length){imp={err:'No hay filas con parámetro y valor cargados en esa hoja.'};renderMed();return}
+  imp={rows:out,map:{}};[...new Set(out.map(o=>o.cid))].forEach(c=>{imp.map[c]=(allUsers().find(u=>u.id===c||u.name.toLowerCase()===c.toLowerCase())||{}).id||''});
+ }catch(e){imp={err:'No pude leer el archivo. ¿Es una planilla .xlsx válida?'}}
+ renderMed();
+}
+async function doImp(){
+ let n=0,skip=0;const rows=imp.rows,map=imp.map;
+ for(const r of rows){const uid=map[r.cid],h=HI.find(x=>x[0]===r.hito);if(!uid||!h){skip++;continue}
+  await putN({id:'lab-'+uid+'-'+r.sid+'-'+r.pid+'-'+r.hito,uid,kind:'lab',ts:r.ts||Date.now(),hito:r.hito,ph:h[1]==='Pre'?'pre':'post',pid:r.pid,name:PN[r.pid],val:r.val,unit:r.unit,min:r.min,max:r.max,fa:r.fa});n++}
+ imp={done:n,skip};renderMed();
+}
+/* ---- Datos de demostración (ficticios) ---- */
+async function demoN(){
+ const us=allUsers().slice(0,4),now=Date.now(),F=[[4,3,3,2,4,3,3,4],[2,1,2,0,2,1,1,2],[3,2,3,2,3,2,2,3],[3,3,2,2,3,3,2,3]];
+ const ffqAt=[[1,8],[2],[12],[3]],massAt=[[[40,70],[10,70]],[[40,66],[8,65.3]],[[41,72]],[[40,80],[3,76.9]]];
+ for(let k=0;k<us.length;k++){const id=us[k].id;
+  for(let d=13;d>=0;d--){const w=k===1&&d<=4,a=w?2:k===2&&d%3===0?1:0;
+   await putN({id:'demo-dq-'+id+'-'+d,uid:id,kind:'dq',ts:now-d*DAY,ap:a,me:w?2:a?1:0,fl:w?1:0,gi:w?1:0,demo:true})}
+  for(const d of ffqAt[k])await putN({id:'demo-ffq-'+id+'-'+d,uid:id,kind:'ffq',ts:now-d*DAY,a:F[k],demo:true});
+  for(const [d,kg] of massAt[k])await putN({id:'demo-mass-'+id+'-'+d,uid:id,kind:'mass',ts:now-d*DAY,kg,demo:true});
+ }
+ if(us[0]){const id=us[0].id;
+  await putN({id:'mis-'+id,uid:id,kind:'mis',ts:now,ch:dayOf(now-250*DAY),dg:dayOf(now-20*DAY),done:{},demo:true});
+  for(const [p,a,b] of [['P10',14.2,12.9],['P08',9.4,9.9],['P06',1.21,1.15]]){
+   await putN({id:'demo-lab-pre-'+p,uid:id,kind:'lab',ts:now-300*DAY,hito:'H04',ph:'pre',pid:p,name:PN[p],val:a,unit:'u. ficticias',min:null,max:null,fa:true,demo:true});
+   await putN({id:'demo-lab-post-'+p,uid:id,kind:'lab',ts:now-20*DAY,hito:'H06',ph:'post',pid:p,name:PN[p],val:b,unit:'u. ficticias',min:null,max:null,fa:true,demo:true})}}
+}
+/* ---- Eventos ---- */
+document.addEventListener('click',async e=>{
+ const b=e.target.closest('button');if(!b)return;const d=b.dataset,i=b.id;
+ if(d.tab){tab=d.tab;applyTab()}
+ else if(d.ctab){cTab=d.ctab;renderCmdAll()}
+ else if(d.nq){nq[d.nq]=+d.v;renderNu()}
+ else if(d.nf){nff[d.nf]=+d.v;renderNu()}
+ else if(d.nm){selN=d.nm;renderNC()}
+ else if(d.done){const m=mis(medU)||{id:'mis-'+medU,uid:medU,kind:'mis',ts:Date.now(),done:{}},dn={...(m.done||{})};dn[d.done]?delete dn[d.done]:dn[d.done]=dayOf(Date.now());await putN({...m,done:dn})}
+ else if(i==='nsq'){const c={id:nid(),uid:cur,kind:'dq',ts:Date.now(),ap:nq.ap,me:nq.me,fl:nq.fl,gi:nq.gi};nq={};await putN(c)}
+ else if(i==='nffo'){ffqOpen=true;renderNu()}
+ else if(i==='nffc'){ffqOpen=false;nff={};renderNu()}
+ else if(i==='nsf'){const c={id:nid(),uid:cur,kind:'ffq',ts:Date.now(),a:FG.map((g,k)=>nff[k])};nff={};ffqOpen=false;await putN(c)}
+ else if(i==='nsm'){const kg=parseFloat(String(nm).replace(',','.'));if(!(kg>=20&&kg<=300)){nerr='Ingresá un valor entre 20 y 300 kg.';renderNu();return}nerr='';nm='';await putN({id:nid(),uid:cur,kind:'mass',ts:Date.now(),kg:Math.round(kg*10)/10})}
+ else if(i==='msd'){const m=mis(medU)||{id:'mis-'+medU,uid:medU,kind:'mis',ts:Date.now(),done:{}};const o={...m,ch:dr.ch!==undefined?dr.ch:m.ch||'',dg:dr.dg!==undefined?dr.dg:m.dg||''};dr={};await putN(o)}
+ else if(i==='mimp'){b.disabled=true;await doImp()}
+ else if(i==='ndemo'){b.disabled=true;await demoN()}
+ else if(i==='nundemo'){for(const x of nu.filter(x=>x.demo))await delN(x.id)}
+});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='nmass')nm=t.value;else if(t.id==='mlch')dr.ch=t.value;else if(t.id==='mldg')dr.dg=t.value});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.id==='mdsel'){medU=t.value;dr={};renderMed()}
+ else if(t.id==='mfile')parseXl(t.files[0]);
+ else if(t.dataset&&t.dataset.c!==undefined&&imp&&imp.map)imp.map[t.dataset.c]=t.value});
+
+
+/* ---------- Asistente de ayuda ---------- */
+const AL=[
+{n:'Leve',c:'var(--ok)',bg:'var(--okbg)',d:'Molestias pasajeras que no te impiden trabajar. Podés resolverlas vos con cuidados simples.',
+ it:[
+ ['Dormiste mal','Mantené horarios fijos de sueño, incluso en días libres.|Bajá las luces y las pantallas una hora antes de dormir.|Evitá la cafeína en las 6 horas previas.|Usá antifaz y tapones si el ruido o la luz te molestan.|Anotalo en tu próximo chequeo.'],
+ ['Ánimo bajo o extrañás a tu familia','Hablá o escribí a tierra: un mensaje corto ya ayuda.|Compartí un rato con un compañero, sin tema de trabajo.|Hacé ejercicio o una actividad que disfrutes.|Si pasan 2 días y no mejora, pasá a Moderado.'],
+ ['Poco apetito o ganas de saltear comidas','Probá porciones chicas de lo que más te gusta del menú.|Hidratate seguido, en sorbos.|Registralo en el módulo de Nutrición.|Si seguís comiendo muy poco al día siguiente, pasá a Moderado.'],
+ ['Dolor de cabeza o molestia leve','Tomá agua, hacé una pausa de 10 minutos y descansá la vista.|Usá solo medicación del botiquín y según lo que indique el médico de a bordo.|Si dura más de 24 horas o empeora, pasá a Moderado.'],
+ ['Estrés por las tareas','Frená 2 minutos: inhalá 4 segundos, exhalá 6, repetí 5 veces.|Dividí lo pendiente en pasos chicos y hacé uno por vez.|Si te sobrepasa, pedile al Comandante que reparta la carga.']
+ ]},
+{n:'Moderado',c:'var(--warn)',bg:'var(--warnbg)',d:'Algo persiste o se repite y empieza a afectar tu día. Conviene avisar hoy o mañana, sin esperar a que empeore.',
+ it:[
+ ['Varios días durmiendo mal o menos de 5 horas','Avisale al médico de a bordo hoy o mañana.|Evitá tareas críticas o de riesgo si estás con mucho sueño.|Si podés, hacé una siesta corta de 20 minutos.|Repetí el chequeo al día siguiente.'],
+ ['Ansiedad o irritabilidad que no baja','Probá respiración lenta y una caminata o ejercicio.|Pedí una conferencia con apoyo psicológico en los próximos días.|Contale a un compañero de confianza cómo te sentís.|Repetí el chequeo mañana.'],
+ ['Tensión con compañeros o ganas de aislarte','Buscá un momento tranquilo y privado para hablar, sin culpar.|Si no se resuelve, pedí mediación al Comandante o a apoyo psicológico.|No dejes de comer ni de entrenar con el grupo, aunque cueste.'],
+ ['Comés muy poco o bajás de peso hace 2 días o más','Registrá lo que comés en Nutrición.|Avisá al médico de a bordo o al equipo de nutrición.|Priorizá comidas pequeñas y frecuentes, y tomá líquidos.'],
+ ['Mareo, náuseas o dolor que no se va','Sentate o recostate y tomá líquidos en sorbos.|No hagas tareas de riesgo hasta sentirte estable.|Avisá hoy al médico de a bordo y contale desde cuándo y cómo empezó.']
+ ]},
+{n:'Grave',c:'var(--org)',bg:'var(--orgbg)',d:'No podés funcionar con normalidad o sentís que no podés sostenerlo. Avisá ahora al médico de a bordo y no te quedes solo.',
+ it:[
+ ['Sentís que nada va a mejorar o que no podés más','Avisá hoy al médico de a bordo y a apoyo psicológico. No esperes a que pase solo.|No te quedes solo: pedile a un compañero de confianza que esté con vos.|Dejá las tareas críticas hasta que te evalúen.|Si aparecen ideas de hacerte daño, pasá a Emergencia ahora.'],
+ ['Ataque de pánico (corazón acelerado, falta de aire, miedo intenso)','Sentate y apoyá bien los pies. Recordá que pasa en pocos minutos.|Inhalá 4 segundos y exhalá 6, despacio.|Nombrá en voz alta 5 cosas que ves y 3 que podés tocar.|Pedí a alguien que te acompañe y avisá al médico de a bordo después.'],
+ ['Casi no dormiste hace varios días','Salí de las tareas críticas: pedile al Comandante que te reasigne.|Avisá al médico de a bordo hoy mismo.|No tomes medicación para dormir sin indicación médica.'],
+ ['Dolor fuerte, fiebre, vómitos repetidos o deshidratación','Avisá ya al médico de a bordo.|Reposo y líquidos en sorbos pequeños si los tolerás.|No te automediques.|Si aparece dificultad para respirar, confusión o desmayo, pasá a Emergencia.'],
+ ['No querés comer nada, o comés de más y te sentís descontrolado','No lo pases solo: avisá al médico de a bordo, sin juicio y sin vergüenza.|Pedí compañía durante las comidas.|Registralo en Nutrición para que el equipo pueda ayudarte.']
+ ]},
+{n:'Emergencia',c:'var(--bad)',bg:'var(--badbg)',d:'Hay riesgo para la vida tuya o de otra persona. Actuá primero, explicá después.',
+ it:[
+ ['Alguien no respira, está inconsciente, tiene dolor de pecho fuerte, sangrado intenso, convulsiones o reacción alérgica grave','Gritá pidiendo ayuda y activá la alarma: avisá al médico de a bordo y al Comandante de inmediato.|Avisá a Control de Misión.|Si no respira, empezá reanimación si sabés hacerlo y pedí que alguien traiga el equipo médico.|Si está inconsciente pero respira, no lo dejes solo.|Para un sangrado: presioná fuerte con un paño limpio.|No muevas a la persona si hay golpe en cuello o cabeza, salvo peligro inmediato.'],
+ ['Alguien dice o muestra que quiere hacerse daño, o vos tenés esas ideas','Si sos vos: decíselo ahora a la persona más cercana. Podés decir «no estoy bien y necesito ayuda». Eso ya es un paso enorme.|Si es otra persona: quedate con ella, escuchala con calma y sin juzgar.|No la dejes sola ni un momento.|Alejá objetos con los que podría lastimarse, si podés hacerlo sin riesgo.|Avisá ya al médico de a bordo y al Comandante, y pedí conferencia urgente con apoyo psicológico.'],
+ ['Fuego, humo, fuga, pérdida de presión o aire tóxico','Activá la alarma y avisá a toda la tripulación y a Control de Misión.|Seguí el procedimiento de emergencia de tu misión (equipos de protección, aislar el módulo, ir a la zona segura).|Hacé un recuento de tripulantes.|No vuelvas al módulo afectado hasta que el Comandante lo autorice.'],
+ ['Un compañero está muy agitado, confundido, ve u oye cosas que no están, o se pone violento','Mantené distancia segura y no lo enfrentes ni discutas.|Hablá con voz baja y calma, con frases cortas.|Pedí ayuda a por lo menos otra persona y avisá al médico de a bordo y al Comandante.|No lo dejes solo ni le des medicación por tu cuenta.']
+ ]}
+];
+let alv=0,aOpener=null;
+function renderAl(){
+ const L=AL[alv];
+ $('alvs').innerHTML=AL.map((x,i)=>'<button type="button" data-al="'+i+'" aria-pressed="'+(i===alv)+'" style="border-color:'+x.c+(i===alv?';background:'+x.bg:'')+'">'+x.n+'</button>').join('');
+ $('abody').innerHTML='<div class="lvbox" style="--c:'+L.c+';--cbg:'+L.bg+'"><b>'+L.n+'.</b> '+L.d+'</div>'+
+  L.it.map(it=>'<details class="cs"><summary>'+it[0]+'</summary><ol>'+it[1].split('|').map(s=>'<li>'+s+'</li>').join('')+'</ol></details>').join('');
+}
+function openAl(){
+ aOpener=document.activeElement;
+ document.querySelectorAll('[data-tri]').forEach(c=>c.checked=false);
+ alv=(view==='crew'&&typeof last!=='undefined'&&last&&last.s!==null&&last.s!==undefined)?last.s:0;
+ renderAl();$('ovl').hidden=false;document.body.style.overflow='hidden';$('aclose').focus();
+}
+function closeAl(){$('ovl').hidden=true;document.body.style.overflow='';if(aOpener&&aOpener.focus)aOpener.focus()}
+$('fab').onclick=openAl;$('aclose').onclick=closeAl;
+$('ovl').onclick=e=>{if(e.target===$('ovl'))closeAl()};
+$('alvs').onclick=e=>{const b=e.target.closest('[data-al]');if(!b)return;alv=+b.dataset.al;renderAl()};
+document.querySelectorAll('[data-tri]').forEach(c=>c.onchange=()=>{
+ const on=[...document.querySelectorAll('[data-tri]')].filter(x=>x.checked).map(x=>+x.dataset.tri);
+ alv=on.length?Math.max(...on):0;renderAl()});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&!$('ovl').hidden){closeAl();return}
+ if(e.key==='Tab'&&!$('ovl').hidden){const f=[...$('ovl').querySelectorAll('button,input,summary')].filter(x=>x.offsetParent!==null);if(!f.length)return;
+  const a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}});
+
+
+/* ---------- Cecilia: asistente de IA (tripulante, médico, comandante) ---------- */
+let SM=null,hist2=[],busy=false,ctl=null,nOpener=null,nKey='';
+const FORMA='Escribí en texto plano, sin markdown (nada de asteriscos ni #). Podés usar saltos de línea y guiones simples.';
+const PERSONA={
+crew:'Sos Cecilia, la acompañante de salud mental y nutrición de la tripulación de una misión espacial. Reunís el conocimiento de una terapeuta psicológica (terapia cognitivo-conductual, aceptación y compromiso, activación conductual, mindfulness, regulación emocional, higiene del sueño e insomnio, manejo de estrés, convivencia y aislamiento en misiones largas), de una psiquiatra (cómo se presentan depresión, ansiedad, trastornos del sueño, duelo, ajuste en confinamiento; cuándo algo requiere evaluación médica; información general sobre tratamientos) y de una nutricionista (alimentación en vuelo espacial: pérdida de apetito y de peso, cambios en el gusto, hidratación, proteínas, calcio, vitamina D, hierro, salud ósea y muscular, comidas en gravedad reducida). Hablás en español rioplatense (voseo), con calidez, de igual a igual, sin sonar a manual. Si la persona solo quiere charlar o desahogarse, escuchá y acompañá: no hace falta resolver nada. Validá lo que siente antes de orientar. Orientá con 2 o 3 pasos concretos y fáciles, como mucho UNA pregunta por mensaje, y no interrogues. Respondé en menos de 130 palabras. Reglas: no diagnosticás ni indicás, ajustás ni dosificás medicación (eso es del médico de a bordo); podés explicar en términos generales cómo funcionan los tratamientos. No sos una persona ni una profesional matriculada y nunca decís que lo sos; sos una asistente de IA y tu ayuda complementa, no reemplaza, al médico de a bordo y al apoyo psicológico de la misión. Si los síntomas persisten más de unos días, empeoran o interfieren con el trabajo, sugerí avisar al médico de a bordo o al apoyo psicológico. Si notás desesperanza, aislamiento marcado o señales de que podría estar pensando en hacerse daño, preguntá con delicadeza y cercanía cómo está, sin dramatizar. Si hay peligro inmediato (no respira, desmayo, dolor fuerte de pecho, sangrado, fuego, pérdida de presión) o dice que quiere hacerse daño o no seguir, quedate con la persona con calidez y sin juzgar, pedile que avise YA al médico de a bordo y al Comandante y que no se quede sola, y recordale que pedir ayuda es lo correcto. Lo que charlan queda entre ustedes: no se comparte con el comandante ni con el personal médico. '+FORMA,
+med:'Sos Cecilia, enfermera de práctica avanzada de la misión, en modo de apoyo clínico para el médico de a bordo. Tenés formación de enfermera de cuidados críticos y de vuelo, con conocimiento de medicina espacial (adaptación a microgravedad, pérdida ósea y muscular, desacondicionamiento cardiovascular, alteraciones visuales neuro-oculares, radiación, riesgo de litiasis renal, deshidratación, trastornos del sueño y ritmo circadiano), nutrición clínica y laboratorio (hierro, vitamina D, calcio, marcadores óseos, estado proteico, antioxidantes), salud mental en aislamiento y confinamiento (depresión, ansiedad, insomnio, conflictos de grupo, riesgo suicida) y farmacología general. Hablás con el médico como colega: directa, técnica, concisa, en español rioplatense. Estructura típica: hallazgos relevantes, qué considerar (diferenciales o riesgos), qué indagar o medir, y opciones de manejo a su criterio. Priorizá por riesgo y señalá primero lo urgente. Podés hablar de dosis, interacciones y criterios clínicos a nivel de referencia, siempre indicando que se verifique contra el formulario y los protocolos de la misión. Marcá con claridad qué sale de los datos de la app y qué es tu conocimiento general; los umbrales nutricionales de la app son provisorios. Si falta información para opinar, decilo y pedí lo que necesitás. La decisión clínica es siempre del médico; sos asistente de IA y no reemplazás su juicio. No inventes datos que no estén en el contexto. Respondé en menos de 220 palabras salvo que pida más detalle. '+FORMA,
+cmd:'Sos Cecilia, la asistente de gestión del comandante de una misión espacial; tu rol es como el de una jefa de gabinete atenta al bienestar de la tripulación. Le hablás directamente al comandante, en español rioplatense, con tono profesional, claro y cercano, yendo al grano. Le informás quién de la tripulación necesita atención y por qué, con frases como "Comandante, Fulano está en alerta: durmió poco tres días y bajó el ánimo" y le proponés acciones concretas y operativas: quién necesita una charla, descanso, reasignar tareas críticas, un contacto con el médico de a bordo o con apoyo psicológico, ajustar turnos o actividades de grupo, seguimiento mañana. Priorizá de lo más urgente a lo menos urgente y señalá también a quienes están bien o mejorando. Basate solo en los datos del contexto; si faltan chequeos o datos, decilo. Respetás la privacidad: compartís estados, tendencias y necesidades, no especulás sobre causas íntimas ni diagnosticás; lo clínico lo evalúa el médico de a bordo, y cuando haya alerta o emergencia recomendá avisarle. Las conversaciones privadas de los tripulantes con Cecilia no las ves ni las comparto. Podés ayudar con planificación liviana (organizar turnos, redactar un mensaje al equipo, preparar un resumen para Control de Misión). Respondé en menos de 200 palabras. '+FORMA};
+const ROLE={
+crew:{sub:'Tu acompañante de salud mental y nutrición · IA',priv:'Cecilia es una asistente de IA, no una persona ni un reemplazo del médico de a bordo. Lo que hablás con ella no se comparte con el comandante ni con el personal médico.',hi:'Hola, soy Cecilia. Estoy para escucharte y darte una mano con lo que necesites: cómo dormís, cómo te sentís, qué comés, o simplemente charlar. ¿Cómo estás hoy?',ph:'Escribí cómo te sentís…',chips:[['Me cuesta dormir','Me cuesta dormir y estoy muy cansado/a'],['Estoy ansioso/a','Estoy ansioso/a y no puedo parar de pensar'],['Extraño a mi familia','Extraño mucho a mi familia'],['No tengo ganas de comer','No tengo ganas de comer'],['Solo quiero charlar','Solo quiero charlar un rato']]},
+med:{sub:'Apoyo clínico para el médico de a bordo · IA',priv:'Asistente de IA para consulta clínica: no reemplaza tu criterio. Verificá dosis y conductas con el formulario y los protocolos de la misión. Usa los datos cargados en la app.',hi:'Hola, doctor/a. Soy Cecilia. Tengo a mano los chequeos, la nutrición y los laboratorios cargados. ¿Qué querés revisar?',ph:'Preguntá sobre un tripulante, un resultado o un caso…',chips:[['Alertas del día','Dame un resumen de las alertas clínicas de hoy, de la más urgente a la menos urgente.'],['Revisar al tripulante elegido','Revisá en detalle al tripulante que tengo seleccionado en Personal médico, con sus laboratorios, y decime qué considerar.'],['Riesgo óseo y renal','Qué riesgo óseo y renal ves en la tripulación según los datos y qué convendría medir.']]},
+cmd:{sub:'Asistente del comandante · IA',priv:'Asistente de IA. Resume estados y necesidades según los chequeos cargados; no ve las conversaciones privadas de los tripulantes con Cecilia ni reemplaza al médico de a bordo.',hi:'',ph:'Preguntame lo que necesites, comandante…',chips:[['Parte de hoy','Dame el parte de hoy de la tripulación.'],['¿Quién necesita atención?','¿Quién de la tripulación necesita atención hoy y qué le sugerís al comandante hacer?'],['Armar mensaje al equipo','Ayudame a redactar un mensaje breve y motivador para toda la tripulación.']]}};
+const role=()=>view==='med'?'med':view==='cmd'?'cmd':'crew';
+function crewLine(id){
+ const m=mine(id),l=m[m.length-1],c=comb(id),n=c.n;let t=nameOf(id)+': ';
+ if(l){t+='salud mental '+ST[l.s][0]+', malestar '+l.idx+'/100, último chequeo hace '+dsince(l.ts)+' d';
+  if(l.ds)t+=' ('+Object.keys(D).map(d=>D[d][0]+' '+(l.ds[d]===undefined?'-':l.ds[d])).join(', ')+')';
+  if(m.length>1)t+='; últimos malestares: '+m.slice(-5).map(x=>x.idx).join(' → ')}
+ else t+='sin chequeos de salud mental';
+ t+='. Nutrición: '+(n.s===null?'sin datos':NSL[n.s]+(n.S.length?' ('+n.S.map(x=>x.x).join(' ')+')':''));
+ if(c.f.length)t+='. Factores combinados: '+c.f.join(', ')+' (estado combinado '+NSL[c.c]+')';
+ return t;
+}
+function labLines(id){
+ return nuOf(id,'lab').slice(0,40).map(x=>x.name+' ['+x.hito+', '+(x.ph==='pre'?'antes':'después')+']: '+x.val+(x.unit?' '+x.unit:'')+((x.min!==null&&x.min!==undefined)||(x.max!==null&&x.max!==undefined)?' (rango '+(x.min===null||x.min===undefined?'?':x.min)+'–'+(x.max===null||x.max===undefined?'?':x.max)+')':'')).join('\n');
+}
+function chatCtx(r){
+ try{
+ if(r==='crew'){
+  if(view==='crew'&&last&&last.s!==null&&last.s!==undefined){
+   const n=ST[last.s][0],dm=Object.keys(last.ds||{}).map(d=>D[d][0]+' '+Math.round(last.ds[d])+'/100').join(', ');
+   return 'Contexto del chequeo que la persona acaba de completar (no lo recites, usalo con tacto): estado '+n+(last.idx!==null?', malestar '+last.idx+'/100':'')+(dm?' ('+dm+')':'')+'.'}
+  return '';
+ }
+ const us=allUsers().map(u=>u.id),hoy=new Date().toLocaleDateString('es-AR');
+ let s='Fecha: '+hoy+'. Estado de la tripulación según los datos cargados en la app:\n'+us.map(crewLine).join('\n');
+ if(r==='med'){const sel=medU&&us.includes(medU)?medU:null;
+  s+='\n\nTripulante seleccionado en Personal médico: '+(sel?nameOf(sel):'ninguno')+'.';
+  if(sel){const L=labLines(sel);s+='\nLaboratorio y DXA cargados de '+nameOf(sel)+':\n'+(L||'(sin resultados importados)')}
+  else{}
+  s+='\n\nLaboratorios cargados de toda la tripulación:\n'+us.map(id=>{const L=labLines(id);return L?nameOf(id)+':\n'+L:''}).filter(Boolean).join('\n')}
+ return s.slice(0,9000);
+ }catch(e){return ''}
+}
+function addMsg(t,c){const d=document.createElement('div');d.className='msg '+c;d.textContent=t;$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight;return d}
+async function openNurse(){
+ nOpener=document.activeElement;
+ if($('ovl')&&!$('ovl').hidden){$('ovl').hidden=true}
+ const r=role(),R=ROLE[r],key=r+'|'+(r==='crew'?(cur||''):'');
+ $('novl').hidden=false;document.body.style.overflow='hidden';
+ if(key!==nKey){
+  nKey=key;if(ctl)ctl.abort();hist2=[];$('chat').innerHTML='';busy=false;
+  $('nsub').textContent=R.sub;$('npriv').textContent=R.priv;$('cin').placeholder=R.ph;
+  $('nchips').innerHTML=R.chips.map(c=>'<button type="button" data-qs="'+esc(c[1])+'">'+esc(c[0])+'</button>').join('');$('nchips').hidden=false;
+  if(R.hi)addMsg(R.hi,'bot');
+ }
+ $('cin').focus();
+ if(SM===null){try{SM=await window.claude.use('sample')}catch(e){SM=null}if(!SM)SM=false;
+  if(SM===false){addMsg('El chat con IA no está disponible en este momento. Podés usar el Asistente de ayuda con las guías por gravedad.','err');$('csend').disabled=true;$('cin').disabled=true;return}}
+ if(r==='cmd'&&SM&&!hist2.length&&!busy)sendNurse('Dame el parte de hoy de la tripulación.',true);
+}
+function closeNurse(){$('novl').hidden=true;document.body.style.overflow='';if(nOpener&&nOpener.focus)nOpener.focus()}
+async function sendNurse(txt,hide){
+ txt=txt.trim();if(!txt||busy||!SM)return;
+ const r=role(),k=nKey;
+ busy=true;$('csend').disabled=true;$('nchips').hidden=true;
+ if(!hide)addMsg(txt,'me');$('cin').value='';
+ hist2.push({role:'user',content:txt});
+ const msgs=hist2.slice(-14).map(m=>({role:m.role,content:m.content}));
+ while(msgs.length&&msgs[0].role!=='user')msgs.shift();
+ msgs[0]={role:'user',content:PERSONA[r]+'\n\n'+chatCtx(r)+'\n\nConversación (respondé solo el último mensaje del usuario):\n'+msgs[0].content};
+ const out=addMsg('…','bot');ctl=new AbortController();
+ try{
+  const res=await SM(msgs,{cache:false,signal:ctl.signal,modelTier:r==='med'?'complex':'default',onText:({text})=>{if(k===nKey&&text&&text!=='Thinking...'){out.textContent=text;$('chat').scrollTop=$('chat').scrollHeight}}});
+  const ans=(res&&res.text||'').trim()||'No pude responder. Probá de nuevo.';
+  if(k===nKey){out.textContent=ans;hist2.push({role:'assistant',content:ans})}
+ }catch(e){
+  if(k!==nKey||(e&&e.name==='AbortError')){out.remove()}
+  else{out.className='msg err';out.textContent=(e&&e.code==='not_granted')?'Para chatear con Cecilia necesito tu permiso. Volvé a intentar y aceptá el aviso.':(e&&e.code==='rate_limited')?'Hay muchas consultas ahora. Esperá un momento y probá de nuevo.':'No pude responder ahora. Si es urgente, avisá al médico de a bordo.';hist2.pop()}
+ }
+ if(k===nKey){busy=false;ctl=null;$('csend').disabled=false;$('cin').focus()}
+}
+$('cform').onsubmit=e=>{e.preventDefault();sendNurse($('cin').value)};
+$('cin').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendNurse($('cin').value)}};
+$('nchips').onclick=e=>{const b=e.target.closest('[data-qs]');if(b)sendNurse(b.dataset.qs)};
+$('nclose').onclick=closeNurse;
+$('novl').onclick=e=>{if(e.target===$('novl'))closeNurse()};
+document.addEventListener('click',e=>{if(e.target.closest('[data-nurse]'))openNurse()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('novl').hidden)closeNurse()});
+
+
+
+buildQs();renderHome();initDb();
+</script>
+</body>
+</html>
